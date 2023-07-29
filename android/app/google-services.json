@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "734448664317",
+    "project_id": "react-native-8802d",
+    "storage_bucket": "react-native-8802d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:734448664317:android:c1571d51083d47da0c0894",
+        "android_client_info": {
+          "package_name": "com.dotogether"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "734448664317-30i9r7a3b90iqan4vilu758d2v29v9ah.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dotogether",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "734448664317-0uiivvd6jqlilvqulnvqeq5k3ha5lcam.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8slUhkm5k24yj6qGKCEqWc0FitTyMTEg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "734448664317-0uiivvd6jqlilvqulnvqeq5k3ha5lcam.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "734448664317-s92c2jo00mnoiqs6mob35ougosc57ad4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dotogether"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
