@@ -27,10 +27,13 @@ end
 
 target 'DoTogether' do
   config = use_native_modules!
-  use_modular_headers!
+  #use_modular_headers!
   # Flags change depending on the env values.
   flags = get_default_flags()
-
+  pod 'Firebase', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  $RNFirebaseAsStaticFramework = true
   use_react_native!(
     :path => config[:reactNativePath],
     # Hermes is now enabled by default. Disable by setting this flag to false.
