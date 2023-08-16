@@ -4,23 +4,14 @@ import {SafeAreaView, useWindowDimensions, Text, View} from 'react-native';
 import {User} from '@react-native-google-signin/google-signin';
 import useStyles from './LoginStyle';
 import {Button} from 'react-native-paper';
-import {GoogleLogin, LoginAgain, AppleLogin} from '../../Services/AuthService';
+import {ActiveUser, AuthService} from '../../Services/AuthService';
 import {Platform} from 'react-native';
-import {appleAuth} from '@invertase/react-native-apple-authentication';
-import auth from '@react-native-firebase/auth';
 function Login(): JSX.Element {
   const {width, height} = useWindowDimensions();
-  const [user, setUser] = useState<User>();
+  const [authService, setAuthService] = useState(new AuthService());
   const styles = useStyles();
   useEffect(() => {
-    LoginAgain().then(user => {
-      if (user != null) {
-        setUser(user);
-        //Navigate to rooms page
-        console.log(user);
-        console.log('navigate simulation');
-      }
-    });
+    authService.LoginAgain();
   }, []);
   return (
     <SafeAreaView style={styles.loginContainer}>
@@ -32,7 +23,7 @@ function Login(): JSX.Element {
           style={styles.loginElment}
           icon="google"
           mode="elevated"
-          onPress={async () => await GoogleLogin()}>
+          onPress={async () => await authService.GoogleLogin()}>
           Continue With Google
         </Button>
         {Platform.OS === 'ios' && (
@@ -40,7 +31,7 @@ function Login(): JSX.Element {
             style={styles.loginElment}
             icon="apple"
             mode="elevated"
-            onPress={async () => await AppleLogin()}>
+            onPress={async () => await authService.AppleLogin()}>
             Continue With Apple
           </Button>
         )}
@@ -52,7 +43,7 @@ function Login(): JSX.Element {
           style={styles.loginElment}
           mode="elevated"
           onPress={() => {
-            console.log('create acc');
+            console.log(ActiveUser.GetActiveUser());
           }}>
           Create Account
         </Button>
