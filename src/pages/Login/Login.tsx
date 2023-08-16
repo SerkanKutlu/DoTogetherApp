@@ -1,12 +1,26 @@
 import React from 'react';
+import {useEffect, useState} from 'react';
 import {SafeAreaView, useWindowDimensions, Text, View} from 'react-native';
-
+import {User} from '@react-native-google-signin/google-signin';
 import useStyles from './LoginStyle';
 import {Button} from 'react-native-paper';
+import {GoogleLogin, LoginAgain} from '../../Services/AuthService';
+import {Platform} from 'react-native';
+
 function Login(): JSX.Element {
   const {width, height} = useWindowDimensions();
+  const [user, setUser] = useState<User>();
   const styles = useStyles();
-
+  useEffect(() => {
+    LoginAgain().then(user => {
+      if (user != null) {
+        setUser(user);
+        //Navigate to rooms page
+        console.log(user);
+        console.log('navigate simulation');
+      }
+    });
+  }, []);
   return (
     <SafeAreaView style={styles.loginContainer}>
       <View style={styles.headerArea}>
@@ -17,20 +31,22 @@ function Login(): JSX.Element {
           style={styles.loginElment}
           icon="google"
           mode="elevated"
-          onPress={() => {
-            console.log('Login google');
-          }}>
+          onPress={async () => await GoogleLogin()}>
           Continue With Google
         </Button>
-        <Button
-          style={styles.loginElment}
-          icon="apple"
-          mode="elevated"
-          onPress={() => {
-            console.log('Login Apple');
-          }}>
-          Continue With Apple
-        </Button>
+        {Platform.OS === 'ios' && (
+          <Button
+            style={styles.loginElment}
+            icon="apple"
+            mode="elevated"
+            onPress={() => {
+              console.log('Login Apple');
+              console.log('StateUser:' + user?.user.id);
+            }}>
+            Continue With Apple
+          </Button>
+        )}
+        çç
         <View style={[styles.orContainer, styles.loginElment]}>
           <Text style={styles.or as any}>or</Text>
         </View>
