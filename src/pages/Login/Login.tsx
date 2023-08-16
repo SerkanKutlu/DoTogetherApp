@@ -6,12 +6,13 @@ import useStyles from './LoginStyle';
 import {Button} from 'react-native-paper';
 import {ActiveUser, AuthService} from '../../Services/AuthService';
 import {Platform} from 'react-native';
-function Login(): JSX.Element {
+function Login({navigation}): JSX.Element {
   const {width, height} = useWindowDimensions();
   const [authService, setAuthService] = useState(new AuthService());
   const styles = useStyles();
   useEffect(() => {
     authService.LoginAgain();
+    navigation.navigate('OnBoard');
   }, []);
   return (
     <SafeAreaView style={styles.loginContainer}>
