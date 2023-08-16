@@ -1,22 +1,25 @@
 import DeviceInfo from 'react-native-device-info';
 import firestore from '@react-native-firebase/firestore';
-import {ActiveUser} from '../../Session/ActiveUser';
 import {Collections} from '../../Constants/Collections';
 import {Room} from '../Models/Room';
 import {UserRoom} from '../Models/UserRoom';
+import {ActiveUser} from './AuthService';
 export class RoomService {
   async CreateRoom(title: string) {
-    let newRoom = new Room(ActiveUser.User.Id, title);
-    await firestore()
-      .collection(Collections.Rooms)
-      .doc(newRoom.Id)
-      .set(newRoom)
-      .then(() => {
-        console.log('Room Created At Firebase');
-      })
-      .catch(e => {
-        console.log('Oda oluşturulurken Hata Oluştu');
-      });
+    const userId = ActiveUser.GetActiveUser()?.user.id;
+    if (userId != undefined) {
+      let newRoom = new Room(userId, title);
+      await firestore()
+        .collection(Collections.Rooms)
+        .doc(newRoom.Id)
+        .set(newRoom)
+        .then(() => {
+          console.log('Room Created At Firebase');
+        })
+        .catch(e => {
+          console.log('Oda oluşturulurken Hata Oluştu');
+        });
+    }
   }
   async GetUserRooms(): Promise<Room[]> {
     var result = new Array<Room>();

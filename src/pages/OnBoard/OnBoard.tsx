@@ -11,13 +11,19 @@ import {
 import {Button, TextInput} from 'react-native-paper';
 import useStyles from './OnBoardStyle';
 import {transparent} from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
+import {RoomService} from '../../Services/RoomService';
 function OnBoard(): JSX.Element {
   const {width, height} = useWindowDimensions();
   const [createRoomModalVisible, setCreateRoomModalVisible] = useState(false);
   const styles = useStyles();
   const [roomNameInput, setroomNameInput] = React.useState('');
+  const roomService = new RoomService();
   function CreateRoomButtonClicked() {
     setCreateRoomModalVisible(true);
+  }
+  async function ModalCreateButtonClicked() {
+    setCreateRoomModalVisible(false);
+    await roomService.CreateRoom(roomNameInput);
   }
   return (
     <View style={styles.container}>
@@ -41,7 +47,7 @@ function OnBoard(): JSX.Element {
               icon="plus"
               mode="elevated"
               style={styles.modalButton}
-              onPress={() => setCreateRoomModalVisible(false)}>
+              onPress={async () => await ModalCreateButtonClicked()}>
               Create
             </Button>
           </View>
