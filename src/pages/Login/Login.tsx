@@ -4,9 +4,10 @@ import {SafeAreaView, useWindowDimensions, Text, View} from 'react-native';
 import {User} from '@react-native-google-signin/google-signin';
 import useStyles from './LoginStyle';
 import {Button} from 'react-native-paper';
-import {GoogleLogin, LoginAgain} from '../../Services/AuthService';
+import {GoogleLogin, LoginAgain, AppleLogin} from '../../Services/AuthService';
 import {Platform} from 'react-native';
-
+import {appleAuth} from '@invertase/react-native-apple-authentication';
+import auth from '@react-native-firebase/auth';
 function Login(): JSX.Element {
   const {width, height} = useWindowDimensions();
   const [user, setUser] = useState<User>();
@@ -39,14 +40,11 @@ function Login(): JSX.Element {
             style={styles.loginElment}
             icon="apple"
             mode="elevated"
-            onPress={() => {
-              console.log('Login Apple');
-              console.log('StateUser:' + user?.user.id);
-            }}>
+            onPress={async () => await AppleLogin()}>
             Continue With Apple
           </Button>
         )}
-        çç
+
         <View style={[styles.orContainer, styles.loginElment]}>
           <Text style={styles.or as any}>or</Text>
         </View>
