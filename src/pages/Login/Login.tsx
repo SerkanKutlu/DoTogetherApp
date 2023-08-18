@@ -10,6 +10,7 @@ function Login({navigation}): JSX.Element {
   const {width, height} = useWindowDimensions();
   const authService = new AuthService();
   const styles = useStyles();
+  console.log('xx');
   useEffect(() => {
     authService.LoginAgain();
     navigation.navigate('OnBoard');

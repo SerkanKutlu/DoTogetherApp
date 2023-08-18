@@ -1,6 +1,6 @@
 import DeviceInfo from 'react-native-device-info';
 import firestore from '@react-native-firebase/firestore';
-import {Collections} from '../../Constants/Collections';
+import {Collections} from '../Constants/Collections';
 import {Room} from '../Models/Room';
 import {UserRoom} from '../Models/UserRoom';
 import {ActiveUser} from './AuthService';

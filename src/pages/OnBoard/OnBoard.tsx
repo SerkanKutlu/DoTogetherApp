@@ -12,25 +12,39 @@ import useStyles from './OnBoardStyle';
 import {RoomService} from '../../Services/RoomService';
 import {Room} from '../../Models/Room';
 import {ActiveUser, AuthService} from '../../Services/AuthService';
+import {RealTimeService} from '../../Services/RealTimeService';
 function OnBoard({navigation}): JSX.Element {
   const [createRoomModalVisible, setCreateRoomModalVisible] = useState(false);
   const [roomNameInput, setroomNameInput] = useState('');
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [invites, setInvites] = useState<any[]>([]);
   const styles = useStyles();
-  console.log('x');
+  const User = ActiveUser.GetActiveUser();
+  console.log('xxx');
   //#region  Service
   const roomService = new RoomService();
   const authService = new AuthService();
+  const realTimeService = new RealTimeService();
   //#endregion
 
   useEffect(() => {
+    console.log(invites);
+    if (User != undefined) {
+      realTimeService.OnInvite(User.user.email).on('child_added', newVal => {
+        const inviteId = newVal.val().InviteId;
+        realTimeService.RemoveReadedInvite(inviteId, User.user.email);
+        invites.push([newVal.val()]);
+        setInvites(invites);
+        console.log([newVal.val()]);
+        console.log('invite geldi yeni invites: ');
+        console.log(invites);
+      });
+    }
+
     roomService.GetUserRooms().then(rooms => {
-      console.log('rooms');
       if (rooms != undefined) {
-        console.log('undefined');
         setRooms(rooms);
       }
-      console.log('undefined');
     });
   }, []);
   function CreateRoomButtonClicked() {

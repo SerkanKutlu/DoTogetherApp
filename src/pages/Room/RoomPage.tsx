@@ -4,15 +4,29 @@ import {Button, TextInput, IconButton} from 'react-native-paper';
 import useStyles from './RoomPageStyle';
 import {Room} from '../../Models/Room';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {RealTimeService} from '../../Services/RealTimeService';
+import {ActiveUser} from '../../Services/AuthService';
 function RoomPage({navigation, route}): JSX.Element {
   const [inviteRoomVisible, setInviteRoomVisible] = useState(false);
   const [userEmailInput, setUserEmailInput] = useState('');
   const styles = useStyles();
   const Room = route.params.Room;
+  const User = ActiveUser.GetActiveUser();
+  //#region Service
+  const realTimeService = new RealTimeService();
+  //#endregion
   function InviteButtonClicked() {
     setInviteRoomVisible(true);
   }
-  function ModalInviteButtonClicked() {}
+  function ModalInviteButtonClicked() {
+    if (User != undefined) {
+      console.log(userEmailInput);
+      realTimeService.SendInvite(
+        User.user.email.toLocaleLowerCase(),
+        userEmailInput.toLocaleLowerCase(),
+      );
+    }
+  }
 
   return (
     <View style={styles.container}>
