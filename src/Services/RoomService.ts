@@ -27,12 +27,45 @@ export class RoomService {
     var user = ActiveUser.GetActiveUser();
     if (user != undefined) {
       var result = new Array<Room>();
-      let qSnapChat = await await firestore()
-        .collection(Collections.Rooms)
-        .where('CreatedUserId', '==', user.user.id)
-        .get()
-        .then(querySnapshot => {
-          querySnapshot.docs.forEach(each => {
+      try {
+        console.log('try girdis');
+        const createdRoomsSnapChat = await firestore()
+          .collection(Collections.Rooms)
+          .where('CreatedUserId', '==', user.user.id)
+          .get();
+        console.log('createdRoomsSnapChat');
+        createdRoomsSnapChat.docs.forEach(each => {
+          console.log('createdRoomsSnapChat each');
+          var room = new Room(
+            each.data().CreatedUserId,
+            each.data().CreatedUserEmail,
+            each.data().Title,
+          );
+          room.CreatedAt = each.data().CreatedAt;
+          room.Id = each.data().Id;
+          room.UpdatedAt = each.data().UpdatedAt;
+          result.push(room);
+        });
+        console.log('createdRoomsSnapChat end');
+        let invitedRoomIds: string[] = [];
+        const userRoomsSnapshot = await firestore()
+          .collection(Collections.UserRooms)
+          .where('UserId', '==', user.user.id)
+          .get();
+        userRoomsSnapshot.docs.forEach(async each => {
+          console.log('userRoomsSnapshot each');
+          invitedRoomIds.push(each.data().RoomId);
+
+          console.log('userRoomsSnapshot each2');
+        });
+        for (let i = 0; i < invitedRoomIds.length; i++) {
+          const invitedRoomSnapshot = await firestore()
+            .collection(Collections.Rooms)
+            .where('Id', '==', invitedRoomIds[i])
+            .get();
+          console.log('invitedRoomSnapshot each start');
+          invitedRoomSnapshot.docs.forEach(each => {
+            console.log('invitedRoomSnapshot each');
             var room = new Room(
               each.data().CreatedUserId,
               each.data().CreatedUserEmail,
@@ -43,50 +76,13 @@ export class RoomService {
             room.UpdatedAt = each.data().UpdatedAt;
             result.push(room);
           });
-        })
-        .catch(e => {
-          console.log('Oda bulunamadi.');
-        });
-      console.log('olusturulan odalar cekildi');
-      console.log('davet ile katilinan odalar getiriliyor');
-      await firestore()
-        .collection(Collections.UserRooms)
-        .where('UserId', '==', user.user.id)
-        .get()
-        .then(querySnapshot => {
-          querySnapshot.docs.forEach(async each => {
-            let roomId = each.data().RoomId;
-            console.log(roomId);
-            await firestore()
-              .collection(Collections.Rooms)
-              // Filter results
-              .where('Id', '==', roomId)
-              .get()
-              .then(querySnapshot => {
-                console.log('baskasi kurdu oda here');
-                console.log(querySnapshot.docs);
-                querySnapshot.docs.forEach(each => {
-                  var room = new Room(
-                    each.data().CreatedUserId,
-                    each.data().CreatedUserEmail,
-                    each.data().Title,
-                  );
-                  console.log(room);
-                  room.CreatedAt = each.data().CreatedAt;
-                  room.Id = each.data().Id;
-                  room.UpdatedAt = each.data().UpdatedAt;
-                  result.push(room);
-                });
-              })
-              .catch(e => {
-                console.log('Oda bulunamadi.');
-              });
-          });
-        })
-        .catch(e => {
-          console.log('Oda bulunamadi.');
-        });
-      console.log('result');
+        }
+
+        console.log('end');
+        return result;
+      } catch (e) {
+        console.log('Odalar çekilirken hata oluştu: ' + e);
+      }
     }
   }
   async JoinRoom(roomId: string) {

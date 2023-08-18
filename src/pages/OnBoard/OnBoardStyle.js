@@ -38,8 +38,9 @@ export default function useStyles() {
       height: '50@s',
       margin: '10@s',
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start',
       alignItems: 'center',
+      marginLeft: '20@s',
     },
     roomListEachTitle: {
       fontWeight: 'bold',
@@ -70,11 +71,20 @@ export default function useStyles() {
       elevation: 5,
     },
     roomNameInput: {
+      marginTop: '25@s',
       width: '200@s',
       height: '40@s',
     },
     modalButton: {
       marginTop: '20@s',
+    },
+    roomListEachDetailBtnContainer: {},
+    roomListEachDeatilsBtn: {
+      transform: [{rotate: '180deg'}],
+    },
+    modalCloseBtn: {
+      position: 'absolute',
+      right: 0,
     },
   });
 }
