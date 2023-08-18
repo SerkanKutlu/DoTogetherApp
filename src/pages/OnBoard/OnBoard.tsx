@@ -1,20 +1,18 @@
-import React from 'react';
-import {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
-  useWindowDimensions,
   TouchableOpacity,
   View,
   Text,
   ScrollView,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import {Button, TextInput} from 'react-native-paper';
 import useStyles from './OnBoardStyle';
-import {transparent} from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 import {RoomService} from '../../Services/RoomService';
 function OnBoard(): JSX.Element {
-  const {width, height} = useWindowDimensions();
   const [createRoomModalVisible, setCreateRoomModalVisible] = useState(false);
+  const [isModalIndicatorVisible, setIsModalIndicatorVisible] = useState(false);
   const styles = useStyles();
   const [roomNameInput, setroomNameInput] = React.useState('');
   const roomService = new RoomService();
@@ -22,9 +20,18 @@ function OnBoard(): JSX.Element {
     setCreateRoomModalVisible(true);
   }
   async function ModalCreateButtonClicked() {
-    setCreateRoomModalVisible(false);
-    await roomService.CreateRoom(roomNameInput);
+    setIsModalIndicatorVisible(true);
+    roomService.CreateRoom(roomNameInput).then(() => {
+      setCreateRoomModalVisible(false);
+      setIsModalIndicatorVisible(false);
+    });
   }
+  useEffect(() => {
+    roomService.GetUserRooms().then(rooms => {
+      if (rooms != undefined) {
+      }
+    });
+  }, []);
   return (
     <View style={styles.container}>
       <Modal
@@ -50,6 +57,11 @@ function OnBoard(): JSX.Element {
               onPress={async () => await ModalCreateButtonClicked()}>
               Create
             </Button>
+            <ActivityIndicator
+              animating={isModalIndicatorVisible}
+              size="large"
+              style={{marginTop: 10}}
+            />
           </View>
         </View>
       </Modal>

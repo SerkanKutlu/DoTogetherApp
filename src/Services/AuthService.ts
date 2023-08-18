@@ -31,7 +31,6 @@ export class AuthService {
     try {
       const user = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(user.idToken);
-      console.log('auth olduk');
       await auth().signInWithCredential(googleCredential);
       ActiveUser.SetActiveUser(user);
     } catch (error: any) {
