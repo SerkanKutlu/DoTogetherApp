@@ -11,18 +11,26 @@ import {Button, TextInput, IconButton} from 'react-native-paper';
 import useStyles from './OnBoardStyle';
 import {RoomService} from '../../Services/RoomService';
 import {Room} from '../../Models/Room';
-function OnBoard(): JSX.Element {
+import {ActiveUser, AuthService} from '../../Services/AuthService';
+function OnBoard({navigation}): JSX.Element {
   const [createRoomModalVisible, setCreateRoomModalVisible] = useState(false);
   const [roomNameInput, setroomNameInput] = useState('');
   const [rooms, setRooms] = useState<Room[]>([]);
   const styles = useStyles();
+  console.log('x');
+  //#region  Service
   const roomService = new RoomService();
+  const authService = new AuthService();
+  //#endregion
 
   useEffect(() => {
     roomService.GetUserRooms().then(rooms => {
+      console.log('rooms');
       if (rooms != undefined) {
+        console.log('undefined');
         setRooms(rooms);
       }
+      console.log('undefined');
     });
   }, []);
   function CreateRoomButtonClicked() {
@@ -31,6 +39,9 @@ function OnBoard(): JSX.Element {
   async function ModalCreateButtonClicked() {
     setCreateRoomModalVisible(false);
     await roomService.CreateRoom(roomNameInput);
+  }
+  function RoomTitlePressed(room: Room) {
+    navigation.navigate('RoomPage', {Room: room});
   }
   return (
     <View style={styles.container}>
@@ -71,7 +82,7 @@ function OnBoard(): JSX.Element {
           icon="account-multiple-plus"
           mode="elevated"
           onPress={() => {
-            console.log('join');
+            console.log('joinx');
           }}>
           Join
         </Button>
@@ -89,16 +100,18 @@ function OnBoard(): JSX.Element {
         <ScrollView style={styles.roomListScrool}>
           {rooms.map(room => {
             return (
-              <View id={room.Id} style={styles.roomListEach}>
+              <View key={room.Id} style={styles.roomListEach}>
                 <View style={styles.roomListEachDetailBtnContainer}>
                   <IconButton
                     icon="arrow-left-thin"
                     size={30}
-                    onPress={() => console.log('Details pressed')}
+                    onPress={() => RoomTitlePressed(room)}
                     style={styles.roomListEachDeatilsBtn}
                   />
                 </View>
-                <TouchableOpacity style={styles.roomListEachTouchable}>
+                <TouchableOpacity
+                  style={styles.roomListEachTouchable}
+                  onPress={() => RoomTitlePressed(room)}>
                   <Text style={styles.roomListEachTitle as any}>
                     {room.Title}
                   </Text>

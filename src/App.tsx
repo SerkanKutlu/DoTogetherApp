@@ -6,6 +6,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Login from './pages/Login/Login';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import OnBoard from './pages/OnBoard/OnBoard';
+import RoomPage from './pages/Room/RoomPage';
 const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
@@ -22,6 +23,11 @@ function App(): JSX.Element {
           <Stack.Screen
             name="OnBoard"
             component={OnBoard}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="RoomPage"
+            component={RoomPage}
             options={{headerShown: false}}
           />
         </Stack.Navigator>

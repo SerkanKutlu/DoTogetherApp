@@ -55,6 +55,7 @@ export class AuthService {
     });
     GoogleSignin.signInSilently()
       .then(user => {
+        console.log('set user again');
         ActiveUser.SetActiveUser(user);
       })
       .catch(error => {

@@ -8,7 +8,7 @@ import {ActiveUser, AuthService} from '../../Services/AuthService';
 import {Platform} from 'react-native';
 function Login({navigation}): JSX.Element {
   const {width, height} = useWindowDimensions();
-  const [authService, setAuthService] = useState(new AuthService());
+  const authService = new AuthService();
   const styles = useStyles();
   useEffect(() => {
     authService.LoginAgain();

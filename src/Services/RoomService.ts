@@ -25,6 +25,7 @@ export class RoomService {
   }
   async GetUserRooms(): Promise<Room[] | void> {
     var user = ActiveUser.GetActiveUser();
+    console.log(user);
     if (user != undefined) {
       var result = new Array<Room>();
       try {
