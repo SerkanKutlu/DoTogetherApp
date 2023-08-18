@@ -10,10 +10,12 @@ function Login({navigation}): JSX.Element {
   const {width, height} = useWindowDimensions();
   const authService = new AuthService();
   const styles = useStyles();
-  console.log('xx');
+  console.log('xxxxx');
   useEffect(() => {
-    authService.LoginAgain();
-    navigation.navigate('OnBoard');
+    authService.LoginAgain().then(() => {
+      console.log('navigating bro');
+      navigation.navigate('OnBoard');
+    });
   }, []);
   return (
     <SafeAreaView style={styles.loginContainer}>
@@ -25,7 +27,12 @@ function Login({navigation}): JSX.Element {
           style={styles.loginElment}
           icon="google"
           mode="elevated"
-          onPress={async () => await authService.GoogleLogin()}>
+          onPress={async () => {
+            try {
+              await authService.GoogleLogin();
+              navigation.navigate('OnBoard');
+            } catch {}
+          }}>
           Continue With Google
         </Button>
         {Platform.OS === 'ios' && (

@@ -45,7 +45,7 @@ export class AuthService {
       }
     }
   }
-  LoginAgain() {
+  async LoginAgain() {
     GoogleSignin.configure({
       webClientId:
         '734448664317-0uiivvd6jqlilvqulnvqeq5k3ha5lcam.apps.googleusercontent.com',
@@ -53,18 +53,16 @@ export class AuthService {
         '734448664317-s92c2jo00mnoiqs6mob35ougosc57ad4.apps.googleusercontent.com',
       offlineAccess: true,
     });
-    GoogleSignin.signInSilently()
-      .then(user => {
-        console.log('set user again');
-        ActiveUser.SetActiveUser(user);
-      })
-      .catch(error => {
-        if (error.code === statusCodes.SIGN_IN_REQUIRED) {
-          console.log('User should be sign in');
-        } else {
-          console.log('Unknown Error:' + error);
-        }
-      });
+    try {
+      var user = await GoogleSignin.signInSilently();
+      ActiveUser.SetActiveUser(user);
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_REQUIRED) {
+        console.log('User should be sign in');
+      } else {
+        console.log('Unknown Error:' + error);
+      }
+    }
   }
   async AppleLogin() {
     try {
