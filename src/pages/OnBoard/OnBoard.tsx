@@ -20,7 +20,7 @@ function OnBoard({navigation}): JSX.Element {
   const [invites, setInvites] = useState<any[]>([]);
   const styles = useStyles();
   const User = ActiveUser.GetActiveUser();
-  console.log('xx');
+
   //#region  Service
   const roomService = new RoomService();
   const authService = new AuthService();
@@ -28,8 +28,6 @@ function OnBoard({navigation}): JSX.Element {
   //#endregion
 
   useEffect(() => {
-    console.log('use effect onboard');
-    console.log(invites);
     if (User != undefined) {
       realTimeService.OnInvite(User.user.email).on('child_added', newVal => {
         const inviteId = newVal.val().InviteId;
@@ -37,8 +35,6 @@ function OnBoard({navigation}): JSX.Element {
         invites.push(newVal.val());
         const newInvites = invites.slice();
         setInvites(newInvites);
-        console.log('invite geldi yeni invites: ');
-        console.log(invites);
       });
     }
 
@@ -48,10 +44,7 @@ function OnBoard({navigation}): JSX.Element {
       }
     });
   }, []);
-  useEffect(() => {
-    console.log('invites changed');
-    console.log(invites);
-  }, [invites]);
+  useEffect(() => {}, [invites]);
   function CreateRoomButtonClicked() {
     setCreateRoomModalVisible(true);
   }

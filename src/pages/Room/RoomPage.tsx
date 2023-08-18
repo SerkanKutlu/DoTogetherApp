@@ -20,7 +20,6 @@ function RoomPage({navigation, route}): JSX.Element {
   }
   function ModalInviteButtonClicked() {
     if (User != undefined) {
-      console.log(userEmailInput);
       realTimeService.SendInvite(
         User.user.email.toLocaleLowerCase(),
         userEmailInput.toLocaleLowerCase(),

@@ -3,9 +3,6 @@ import {Sockets} from '../Constants/Sockets';
 import uuid from 'react-native-uuid';
 export class RealTimeService {
   OnInvite(activeUserEmail: string) {
-    console.log(
-      `oninvite:   ${Sockets.Invite}/${activeUserEmail.replace('.', '')}/`,
-    );
     return firebase
       .app()
       .database(
@@ -26,9 +23,7 @@ export class RealTimeService {
         InviteId: inviteId,
         InvitedBy: invitedby,
       })
-      .then(() => {
-        console.log('data sent');
-      });
+      .then(() => {});
   }
   RemoveReadedInvite(inviteId: string, invited: string) {
     firebase

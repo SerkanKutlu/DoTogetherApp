@@ -11,12 +11,10 @@ function Login({navigation}): JSX.Element {
   const [showLogin, setShowLogin] = useState(false);
   const authService = new AuthService();
   const styles = useStyles();
-  console.log('xxxxx');
   useEffect(() => {
     authService
       .LoginAgain()
       .then(() => {
-        console.log('navigating bro');
         navigation.navigate('OnBoard');
       })
       .catch(() => {
@@ -59,9 +57,7 @@ function Login({navigation}): JSX.Element {
             <Button
               style={styles.loginElment}
               mode="elevated"
-              onPress={() => {
-                console.log(ActiveUser.GetActiveUser());
-              }}>
+              onPress={() => {}}>
               Create Account
             </Button>
           </View>

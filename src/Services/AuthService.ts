@@ -27,7 +27,6 @@ export class AuthService {
   }
 
   async GoogleLogin() {
-    console.log('Login google');
     try {
       const user = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(user.idToken);
@@ -89,8 +88,6 @@ export class AuthService {
         console.log(
           `Firebase authenticated via Apple, UID: ${userCredential.user.uid}`,
         );
-      } else {
-        console.log('retry here');
       }
     } catch (e) {
       console.log('catch' + e);
