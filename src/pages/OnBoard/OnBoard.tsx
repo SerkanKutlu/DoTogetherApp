@@ -19,18 +19,11 @@ function OnBoard({navigation}): JSX.Element {
   const [roomNameInput, setroomNameInput] = useState('');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [invites, setInvites] = useState<any[]>([]);
-  const [invitesModalVisible, setInvitesModalVisible] = useState(false);
-  const [invitesPageNumber, setInvitesPageNumber] = React.useState<number>(0);
   //#endregion
   //#region ConstVariables
   const styles = useStyles();
   const User = ActiveUser.GetActiveUser();
-  const itemPerPage = 5;
-  const fromInvites = invitesPageNumber * itemPerPage;
-  const toInvites = Math.min(
-    (invitesPageNumber + 1) * itemPerPage,
-    invites.length,
-  );
+
   //#endregion
   //#region  Service
   const roomService = new RoomService();
@@ -121,52 +114,13 @@ function OnBoard({navigation}): JSX.Element {
           </View>
         </View>
       </Modal>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={invitesModalVisible}
-        onRequestClose={() => {
-          setInvitesModalVisible(false);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <IconButton
-              icon="close"
-              size={20}
-              onPress={() => setInvitesModalVisible(false)}
-              style={styles.modalCloseBtn}
-            />
-            <DataTable>
-              <DataTable.Header>
-                <DataTable.Title>Invited By</DataTable.Title>
-                <DataTable.Title>Room Title</DataTable.Title>
-              </DataTable.Header>
 
-              {invites.slice(fromInvites, toInvites).map(item => (
-                <DataTable.Row key={item.InviteId}>
-                  <DataTable.Cell>{item.InvitedBy}</DataTable.Cell>
-                  <DataTable.Cell>{item.Title}</DataTable.Cell>
-                </DataTable.Row>
-              ))}
-
-              <DataTable.Pagination
-                page={invitesPageNumber}
-                numberOfPages={Math.ceil(invites.length / itemPerPage)}
-                onPageChange={page => setInvitesPageNumber(page)}
-                label={`${fromInvites + 1}-${toInvites} of ${invites.length}`}
-                numberOfItemsPerPage={itemPerPage}
-                showFastPaginationControls
-              />
-            </DataTable>
-          </View>
-        </View>
-      </Modal>
       <View style={styles.navbar}>
         <Button
           icon="account-multiple-plus"
           mode="elevated"
           onPress={() => {
-            setInvitesModalVisible(true);
+            navigation.navigate('Invites', {Invites: invites});
           }}>
           {invites.length > 0 ? `Join (${invites.length})` : 'Join (0)'}
         </Button>
