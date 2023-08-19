@@ -58,8 +58,10 @@ export class AuthService {
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_REQUIRED) {
         console.log('User should be sign in');
+        throw 'User should be sign in';
       } else {
         console.log('Unknown Error:' + error);
+        throw 'Unknown Error:' + error;
       }
     }
   }

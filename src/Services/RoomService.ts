@@ -4,6 +4,7 @@ import {Collections} from '../Constants/Collections';
 import {Room} from '../Models/Room';
 import {UserRoom} from '../Models/UserRoom';
 import {ActiveUser} from './AuthService';
+import {create} from 'react-test-renderer';
 export class RoomService {
   async CreateRoom(title: string) {
     const user = ActiveUser.GetActiveUser();
@@ -70,6 +71,28 @@ export class RoomService {
       } catch (e) {
         console.log('Odalar çekilirken hata oluştu: ' + e);
       }
+    }
+  }
+  async GetRoomById(roomId: string): Promise<Room | undefined> {
+    try {
+      const createdRoomsSnapChat = await firestore()
+        .collection(Collections.Rooms)
+        .where('Id', '==', roomId)
+        .get();
+      for (let i = 0; i < createdRoomsSnapChat.docs.length; i++) {
+        var room = new Room(
+          createdRoomsSnapChat.docs[i].data().CreatedUserId,
+          createdRoomsSnapChat.docs[i].data().CreatedUserEmail,
+          createdRoomsSnapChat.docs[i].data().Title,
+        );
+        room.CreatedAt = createdRoomsSnapChat.docs[i].data().CreatedAt;
+        room.Id = createdRoomsSnapChat.docs[i].data().Id;
+        room.UpdatedAt = createdRoomsSnapChat.docs[i].data().UpdatedAt;
+        return room;
+      }
+    } catch (error) {
+      console.log(error);
+      throw 'Oda bulunamadıabc';
     }
   }
   async JoinRoom(roomId: string) {

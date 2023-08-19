@@ -11,7 +11,7 @@ export class RealTimeService {
       .ref(`${Sockets.Invite}/${activeUserEmail.replace('.', '')}`);
   }
 
-  SendInvite(invitedby: string, invited: string) {
+  SendInvite(invitedby: string, invited: string, roomId: string) {
     const inviteId = uuid.v4().toString();
     firebase
       .app()
@@ -22,6 +22,7 @@ export class RealTimeService {
       .set({
         InviteId: inviteId,
         InvitedBy: invitedby,
+        RoomId: roomId,
       })
       .then(() => {});
   }

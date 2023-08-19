@@ -10,7 +10,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [inviteRoomVisible, setInviteRoomVisible] = useState(false);
   const [userEmailInput, setUserEmailInput] = useState('');
   const styles = useStyles();
-  const Room = route.params.Room;
+  const Room: Room = route.params.Room;
   const User = ActiveUser.GetActiveUser();
   //#region Service
   const realTimeService = new RealTimeService();
@@ -23,6 +23,7 @@ function RoomPage({navigation, route}): JSX.Element {
       realTimeService.SendInvite(
         User.user.email.toLocaleLowerCase(),
         userEmailInput.toLocaleLowerCase(),
+        Room.Id,
       );
     }
   }
