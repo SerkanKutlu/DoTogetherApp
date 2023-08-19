@@ -32,14 +32,20 @@ function Invites({navigation, route}): JSX.Element {
               console.log('invites use effect room is defined');
               console.log(room);
               realTimeService.RemoveReadedInvite(inviteId, User.user.email);
-              invites.push({
-                InviteId: newVal.val().InviteId,
-                InvitedBy: newVal.val().InvitedBy,
-                Title: room.Title,
-                RoomId: room.Id,
-              });
-              const newInvites = invites.slice();
-              setInvites(newInvites);
+              roomService
+                .CreateRoomInvite({
+                  InviteId: newVal.val().InviteId,
+                  InvitedBy: newVal.val().InvitedBy,
+                  Title: room.Title,
+                  RoomId: room.Id,
+                  InvitedId: User.user.id,
+                })
+                .then(async () => {
+                  await RefreshInvites();
+                })
+                .catch(() => {
+                  console.log('invite olusmaadi');
+                });
             }
           })
           .catch(() => {
@@ -54,10 +60,27 @@ function Invites({navigation, route}): JSX.Element {
     try {
       console.log(item);
       await roomService.JoinRoom(item.RoomId);
-      var newInvites = invites.filter(i => i.InviteId !== item.InviteId);
-      setInvites(newInvites);
+      roomService.DeleteRoomInvite(item.InviteId);
+      roomService.DeleteRoomInvite(item.InviteId).then(() => {
+        RefreshInvites();
+      });
     } catch (error) {
       console.log('oda onaylanamadı. Tekrar dene.');
+    }
+  }
+  async function RejectBtnClicked(item: any) {
+    roomService.DeleteRoomInvite(item.InviteId).then(() => {
+      RefreshInvites();
+    });
+  }
+  async function RefreshInvites() {
+    try {
+      var invitesFromDb = await roomService.GetRoomInvites();
+      if (invitesFromDb != undefined) {
+        setInvites(invitesFromDb);
+      }
+    } catch (error) {
+      console.log('refresh olmadi');
     }
   }
   return (
@@ -82,7 +105,7 @@ function Invites({navigation, route}): JSX.Element {
             <IconButton
               icon="close"
               size={20}
-              onPress={() => console.log('declined')}
+              onPress={async () => await RejectBtnClicked(item)}
               style={{margin: 0}}
             />
           </DataTable.Cell>

@@ -136,4 +136,25 @@ export class RoomService {
         throw new Error('Odaya Katılırken Hata Oluştu.');
       });
   }
+  async GetRoomInvites(): Promise<any[] | void> {
+    var user = ActiveUser.GetActiveUser();
+    if (user != undefined) {
+      try {
+        var result = new Array<any>();
+        var roomInvitesSnapShot = await firestore()
+          .collection(Collections.Invites)
+          .where('InvitedId', '==', user.user.id)
+          .get();
+        for (let i = 0; i < roomInvitesSnapShot.docs.length; i++) {
+          result.push(roomInvitesSnapShot.docs[i].data());
+        }
+        return result;
+      } catch (error) {
+        console.log('invites cekilemedi' + error);
+      }
+    }
+  }
+  async DeleteRoomInvite(inviteId: string) {
+    await firestore().collection(Collections.Invites).doc(inviteId).delete();
+  }
 }

@@ -34,6 +34,7 @@ function OnBoard({navigation}): JSX.Element {
   useEffect(() => {
     navigation.addListener('focus', () => {
       SetRooms();
+      RefreshInvites();
     });
     if (User != undefined) {
       realTimeService.OnInvite(User.user.email).on('child_added', newVal => {
@@ -47,20 +48,20 @@ function OnBoard({navigation}): JSX.Element {
               console.log(room);
               realTimeService.RemoveReadedInvite(inviteId, User.user.email);
 
-              roomService.CreateRoomInvite({
-                InviteId: newVal.val().InviteId,
-                InvitedBy: newVal.val().InvitedBy,
-                Title: room.Title,
-                RoomId: room.Id,
-              });
-              invites.push({
-                InviteId: newVal.val().InviteId,
-                InvitedBy: newVal.val().InvitedBy,
-                Title: room.Title,
-                RoomId: room.Id,
-              });
-              const newInvites = invites.slice();
-              setInvites(newInvites);
+              roomService
+                .CreateRoomInvite({
+                  InviteId: newVal.val().InviteId,
+                  InvitedBy: newVal.val().InvitedBy,
+                  Title: room.Title,
+                  RoomId: room.Id,
+                  InvitedId: User.user.id,
+                })
+                .then(async () => {
+                  await RefreshInvites();
+                })
+                .catch(() => {
+                  console.log('invite olusmaadi');
+                });
             }
           })
           .catch(() => {
@@ -70,6 +71,7 @@ function OnBoard({navigation}): JSX.Element {
       });
     }
     SetRooms();
+    RefreshInvites();
   }, []);
   function SetRooms() {
     console.log('set rooms worked');
@@ -78,6 +80,17 @@ function OnBoard({navigation}): JSX.Element {
         setRooms(rooms);
       }
     });
+  }
+  async function RefreshInvites() {
+    try {
+      var invitesFromDb = await roomService.GetRoomInvites();
+      if (invitesFromDb != undefined) {
+        setInvites(invitesFromDb);
+        console.log('refreshlendik');
+      }
+    } catch (error) {
+      console.log('refresh olmadi');
+    }
   }
   function CreateRoomButtonClicked() {
     setCreateRoomModalVisible(true);
