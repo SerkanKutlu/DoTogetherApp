@@ -96,17 +96,21 @@ export class RoomService {
     }
   }
   async JoinRoom(roomId: string) {
-    let newUserRoom = new UserRoom(roomId, ActiveUser.User.Id);
-    await firestore()
-      .collection(Collections.UserRooms)
-      .doc(newUserRoom.Id)
-      .set(newUserRoom)
-      .then(() => {
-        console.log('Room Created At Firebase');
-      })
-      .catch(e => {
-        throw new Error('Odaya Katılırken Hata Oluştu.');
-      });
+    var user = ActiveUser.GetActiveUser();
+    if (user != undefined) {
+      console.log('undefined değil ' + roomId);
+      let newUserRoom = new UserRoom(roomId, user.user.id);
+      await firestore()
+        .collection(Collections.UserRooms)
+        .doc(newUserRoom.Id)
+        .set(newUserRoom)
+        .then(() => {
+          console.log('RoomUser Created At Firebase');
+        })
+        .catch(e => {
+          throw new Error('Odaya Katılırken Hata Oluştu.');
+        });
+    }
   }
   async LeaveRoom(roomId: string) {
     await firestore()
@@ -118,6 +122,18 @@ export class RoomService {
       })
       .catch(e => {
         throw new Error('Odadan Ayrılırken Hata Oluştu.');
+      });
+  }
+  async CreateRoomInvite(item: any) {
+    await firestore()
+      .collection(Collections.Invites)
+      .doc(item.InviteId)
+      .set(item)
+      .then(() => {
+        console.log('Invite Created At Firebase');
+      })
+      .catch(e => {
+        throw new Error('Odaya Katılırken Hata Oluştu.');
       });
   }
 }

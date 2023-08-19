@@ -32,25 +32,32 @@ function OnBoard({navigation}): JSX.Element {
   //#endregion
 
   useEffect(() => {
+    navigation.addListener('focus', () => {
+      SetRooms();
+    });
     if (User != undefined) {
-      console.log('on1');
       realTimeService.OnInvite(User.user.email).on('child_added', newVal => {
-        console.log('on');
         const inviteId = newVal.val().InviteId;
         const roomId = newVal.val().RoomId;
         console.log(roomId);
         roomService
           .GetRoomById(roomId)
           .then(room => {
-            console.log('under rroom');
             if (room != undefined) {
-              console.log('defined');
               console.log(room);
               realTimeService.RemoveReadedInvite(inviteId, User.user.email);
+
+              roomService.CreateRoomInvite({
+                InviteId: newVal.val().InviteId,
+                InvitedBy: newVal.val().InvitedBy,
+                Title: room.Title,
+                RoomId: room.Id,
+              });
               invites.push({
                 InviteId: newVal.val().InviteId,
                 InvitedBy: newVal.val().InvitedBy,
                 Title: room.Title,
+                RoomId: room.Id,
               });
               const newInvites = invites.slice();
               setInvites(newInvites);
@@ -62,20 +69,23 @@ function OnBoard({navigation}): JSX.Element {
           });
       });
     }
-
+    SetRooms();
+  }, []);
+  function SetRooms() {
+    console.log('set rooms worked');
     roomService.GetUserRooms().then(rooms => {
       if (rooms != undefined) {
         setRooms(rooms);
       }
     });
-  }, []);
-  useEffect(() => {}, [invites]);
+  }
   function CreateRoomButtonClicked() {
     setCreateRoomModalVisible(true);
   }
   async function ModalCreateButtonClicked() {
     setCreateRoomModalVisible(false);
     await roomService.CreateRoom(roomNameInput);
+    SetRooms();
   }
   function RoomTitlePressed(room: Room) {
     navigation.navigate('RoomPage', {Room: room});
