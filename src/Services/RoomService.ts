@@ -98,7 +98,6 @@ export class RoomService {
   async JoinRoom(roomId: string) {
     var user = ActiveUser.GetActiveUser();
     if (user != undefined) {
-      console.log('undefined değil ' + roomId);
       let newUserRoom = new UserRoom(roomId, user.user.id);
       await firestore()
         .collection(Collections.UserRooms)

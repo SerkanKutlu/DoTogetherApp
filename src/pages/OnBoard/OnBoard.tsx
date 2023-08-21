@@ -40,12 +40,10 @@ function OnBoard({navigation}): JSX.Element {
       realTimeService.OnInvite(User.user.email).on('child_added', newVal => {
         const inviteId = newVal.val().InviteId;
         const roomId = newVal.val().RoomId;
-        console.log(roomId);
         roomService
           .GetRoomById(roomId)
           .then(room => {
             if (room != undefined) {
-              console.log(room);
               realTimeService.RemoveReadedInvite(inviteId, User.user.email);
 
               roomService
@@ -74,7 +72,6 @@ function OnBoard({navigation}): JSX.Element {
     RefreshInvites();
   }, []);
   function SetRooms() {
-    console.log('set rooms worked');
     roomService.GetUserRooms().then(rooms => {
       if (rooms != undefined) {
         setRooms(rooms);
@@ -86,7 +83,6 @@ function OnBoard({navigation}): JSX.Element {
       var invitesFromDb = await roomService.GetRoomInvites();
       if (invitesFromDb != undefined) {
         setInvites(invitesFromDb);
-        console.log('refreshlendik');
       }
     } catch (error) {
       console.log('refresh olmadi');

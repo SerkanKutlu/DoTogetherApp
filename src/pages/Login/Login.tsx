@@ -15,7 +15,6 @@ function Login({navigation}): JSX.Element {
     authService
       .LoginAgain()
       .then(() => {
-        console.log('navigation');
         navigation.navigate('OnBoard');
       })
       .catch(() => {

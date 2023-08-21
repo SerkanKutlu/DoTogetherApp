@@ -9,11 +9,11 @@ export default function useStyles() {
       flex: 1,
     },
     navbar: {
-      flex: 1,
       flexDirection: 'row',
+      marginHorizontal: '20@s',
+      marginVertical: '20@s',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginHorizontal: '20@s',
     },
     centeredView: {
       flex: 1,
@@ -48,5 +48,6 @@ export default function useStyles() {
       position: 'absolute',
       right: 0,
     },
+    TextAreaContainer: {},
   });
 }

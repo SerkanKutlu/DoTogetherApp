@@ -5,4 +5,7 @@ export enum Collections {
   UserDevices = 'UserDevices',
   UserRooms = 'UserRooms',
   Invites = 'Invites',
+  Notes = 'Notes',
+  Activity = 'Activity',
+  ActiveUsers = 'ActiveUsers',
 }

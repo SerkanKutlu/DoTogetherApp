@@ -16,21 +16,14 @@ function Invites({navigation, route}): JSX.Element {
   const realTimeService = new RealTimeService();
   const User = ActiveUser.GetActiveUser();
   useEffect(() => {
-    console.log('invites use effec tstart');
     if (User != undefined) {
-      console.log('invites use effec user is defined');
       realTimeService.OnInvite(User.user.email).on('child_added', newVal => {
-        console.log('invites use effect on in');
         const inviteId = newVal.val().InviteId;
         const roomId = newVal.val().RoomId;
-        console.log(roomId);
         roomService
           .GetRoomById(roomId)
           .then(room => {
-            console.log('invites use effec room then');
             if (room != undefined) {
-              console.log('invites use effect room is defined');
-              console.log(room);
               realTimeService.RemoveReadedInvite(inviteId, User.user.email);
               roomService
                 .CreateRoomInvite({
@@ -54,11 +47,9 @@ function Invites({navigation, route}): JSX.Element {
           });
       });
     }
-    console.log('use effect end');
   }, []);
   async function ApproveBtnClicked(item: any) {
     try {
-      console.log(item);
       await roomService.JoinRoom(item.RoomId);
       roomService.DeleteRoomInvite(item.InviteId);
       roomService.DeleteRoomInvite(item.InviteId).then(() => {

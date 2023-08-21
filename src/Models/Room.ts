@@ -5,6 +5,8 @@ export class Room extends BaseEntity {
   Title: string;
   CreatedUserEmail: string;
   UserCount: number;
+  IsLocked: boolean = false;
+  LockedBy: string = '';
   constructor(CreatedUserId: string, CreatedUserEmail: string, Title: string) {
     super();
     (this.CreatedUserId = CreatedUserId), (this.Title = Title);

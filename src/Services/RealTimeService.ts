@@ -35,4 +35,27 @@ export class RealTimeService {
       .ref(`${Sockets.Invite}/${invited.replace('.', '')}/${inviteId}`)
       .remove();
   }
+  SetRoomText(roomId: string, newText: string) {
+    firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.RoomText}/${roomId}`)
+      .set({
+        Text: newText,
+      })
+      .then(() => {})
+      .catch(e => {
+        console.log('text yazılamadı ' + e);
+      });
+  }
+  OnRoomTextChanged(roomId: string) {
+    return firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.RoomText}/${roomId}`);
+  }
 }
