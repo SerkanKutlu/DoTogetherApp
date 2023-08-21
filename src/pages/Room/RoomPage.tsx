@@ -1,38 +1,48 @@
 import React, {useState, useEffect} from 'react';
 import {View, TextInput as TextInputReact, Modal} from 'react-native';
-import {Button, TextInput, IconButton} from 'react-native-paper';
+import {Button, TextInput, IconButton, DataTable} from 'react-native-paper';
 import useStyles from './RoomPageStyle';
-import {Room} from '../../Models/Room';
 import {RealTimeService} from '../../Services/RealTimeService';
 import {ActiveUser} from '../../Services/AuthService';
 import {NoteService} from '../../Services/NoteService';
 import {ActivityService} from '../../Services/ActivityService';
-import {act} from 'react-test-renderer';
+import {RoomService} from '../../Services/RoomService';
+import {Consumer} from 'react-native-paper/lib/typescript/core/settings';
 function RoomPage({navigation, route}): JSX.Element {
   //#region States
   const [inviteRoomVisible, setInviteRoomVisible] = useState(false);
+  const [activeUsersVisible, setActiveUsersVisible] = useState(false);
   const [userEmailInput, setUserEmailInput] = useState('');
   const [pageContent, setPageContent] = useState('');
-  const [activeUsers, setActiveUsers] = useState<any[]>([]);
+  const [activeUsers, setActiveUsers] = useState<any[]>();
+  const [activeUsersPageNumber, setActiveUsersPageNumber] = useState<number>(0);
+  const [Room, setRoom] = useState(route.params.Room);
   //#endregion
   //#region Constants
   const styles = useStyles();
-  const Room: Room = route.params.Room;
   const User = ActiveUser.GetActiveUser();
+  const activeUserPerPage = 5;
+  const fromActiveUsers = activeUsersPageNumber * activeUserPerPage;
+  const toActiveUsers = Math.min(
+    (activeUsersPageNumber + 1) * activeUserPerPage,
+    activeUsers != undefined ? activeUsers.length : 0,
+  );
   //#endregion
   //#region Service
   const realTimeService = new RealTimeService();
   const noteService = new NoteService();
   const activityService = new ActivityService();
+  const roomService = new RoomService();
   //#endregion
 
   useEffect(() => {
     return () => {
-      if (User != undefined)
+      if (User != undefined) {
         activityService.DeleteActive(
           User.user.email != undefined ? User.user.email : '',
           Room.Id,
         );
+      }
     };
   }, []);
   useEffect(() => {
@@ -45,18 +55,35 @@ function RoomPage({navigation, route}): JSX.Element {
         setPageContent(content);
       }
     });
-    if (User != undefined)
-      activityService.MakeActive(
-        User.user.email != undefined ? User.user.email : '',
-        Room.Id,
-      );
+    if (User != undefined) {
+      activityService.GetActiveUsers(Room.Id).then(users => {
+        if (users != undefined && users.length == 0) {
+          roomService.UpdateRoomLockedBy(Room.Id, User?.user.email);
+        }
+        activityService.MakeActive(
+          User.user.email != undefined ? User.user.email : '',
+          Room.Id,
+        );
+      });
+    }
     activityService.TrackActivityChange(
       (snapshot: any) => {
         var result: any[] = new Array();
         for (let i = 0; i < snapshot.docs.length; i++) {
           result.push(snapshot.docs[i].data());
         }
-        setActiveUsers(result);
+        console.log('sıkıntı bu mu acaba'); //BURDA SIKINTI VAR. ACTIVITY CHANGE DEN BİR DEĞİŞİKLİKTE ELLİ TANE GELİYOR VE YANLIŞ GELİYOR
+        console.log(result);
+        //setActiveUsers(result);
+      },
+      null,
+      Room.Id,
+    );
+    roomService.TrackRoomUpdates(
+      (snapshot: any) => {
+        if (snapshot != undefined) {
+          setRoom(snapshot.data());
+        }
       },
       null,
       Room.Id,
@@ -68,6 +95,26 @@ function RoomPage({navigation, route}): JSX.Element {
       noteService.SaveNote(pageContent, Room.Id);
     }
   }, [pageContent]);
+  useEffect(() => {
+    console.log('active changed');
+    console.log(activeUsers);
+    if (activeUsers != undefined && activeUsers.length == 1) {
+      roomService.UpdateRoomLockedBy(Room.Id, activeUsers[0].UserEmail);
+    }
+    if (
+      activeUsers != undefined &&
+      activeUsers.some(r => r.UserEmail == Room.LockedBy) == false &&
+      activeUsers.length > 0
+    ) {
+      roomService.UpdateRoomLockedBy(Room.Id, activeUsers[0].UserEmail);
+    }
+    if (activeUsers == undefined || activeUsers.length == 0) {
+      console.log('oda zikiş');
+      console.log(activeUsers);
+      roomService.UpdateRoomLockedBy(Room.Id, '');
+    }
+  }, [activeUsers]);
+  useEffect(() => {}, [Room]);
   function InviteButtonClicked() {
     setInviteRoomVisible(true);
   }
@@ -78,13 +125,16 @@ function RoomPage({navigation, route}): JSX.Element {
         userEmailInput.toLocaleLowerCase(),
         Room.Id,
       );
+      setInviteRoomVisible(false);
     }
   }
   function GoBackButtonPressed() {
     navigation.navigate('OnBoard');
   }
 
-  function ShowActiveUsers() {}
+  function ShowActiveUsers() {
+    setActiveUsersVisible(true);
+  }
   return (
     <View style={styles.container}>
       <Modal
@@ -117,6 +167,64 @@ function RoomPage({navigation, route}): JSX.Element {
           </View>
         </View>
       </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={activeUsersVisible}
+        onRequestClose={() => {
+          setActiveUsersVisible(false);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <IconButton
+              icon="close"
+              size={20}
+              onPress={() => setActiveUsersVisible(false)}
+              style={styles.modalCloseBtn}
+            />
+            <DataTable>
+              <DataTable.Header>
+                <DataTable.Title style={{flex: 5}}>User</DataTable.Title>
+                <DataTable.Title style={{flex: 1}}> </DataTable.Title>
+              </DataTable.Header>
+
+              {activeUsers?.slice(fromActiveUsers, toActiveUsers).map(item => (
+                <DataTable.Row key={item.Id}>
+                  <DataTable.Cell style={{flex: 5}}>
+                    {item.UserEmail}
+                  </DataTable.Cell>
+                  <DataTable.Cell style={{flex: 1}}>
+                    {Room.LockedBy == item.UserEmail ? (
+                      <IconButton
+                        icon="chat-processing-outline"
+                        onPress={() => {}}
+                        disabled
+                      />
+                    ) : (
+                      ''
+                    )}
+                  </DataTable.Cell>
+                </DataTable.Row>
+              ))}
+
+              <DataTable.Pagination
+                page={activeUsersPageNumber}
+                numberOfPages={Math.ceil(
+                  activeUsers == undefined
+                    ? 0
+                    : activeUsers.length / activeUserPerPage,
+                )}
+                onPageChange={page => setActiveUsersPageNumber(page)}
+                label={`${fromActiveUsers + 1}-${toActiveUsers} of ${
+                  activeUsers == undefined ? 0 : activeUsers.length
+                }`}
+                numberOfItemsPerPage={activeUserPerPage}
+                showFastPaginationControls
+              />
+            </DataTable>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.navbar}>
         <IconButton
           icon="arrow-left-thin"
@@ -124,7 +232,7 @@ function RoomPage({navigation, route}): JSX.Element {
           onPress={() => GoBackButtonPressed()}
         />
         <Button icon="account" onPress={() => ShowActiveUsers()}>
-          {activeUsers.length}
+          {activeUsers == undefined ? 0 : activeUsers.length}
         </Button>
         <Button icon="account-plus" onPress={() => InviteButtonClicked()}>
           Invite
@@ -133,6 +241,7 @@ function RoomPage({navigation, route}): JSX.Element {
       <View style={styles.TextAreaContainer}>
         <TextInputReact
           multiline
+          editable={Room.LockedBy == User?.user.email ? true : false}
           placeholder="Start Note Together"
           value={pageContent}
           onChangeText={val => {

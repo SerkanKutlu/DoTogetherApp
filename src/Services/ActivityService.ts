@@ -1,6 +1,6 @@
 import firestore from '@react-native-firebase/firestore';
 import {Collections} from '../Constants/Collections';
-
+import uuid from 'react-native-uuid';
 export class ActivityService {
   async MakeActive(userEmail: string, roomId: string) {
     await firestore()
@@ -11,6 +11,7 @@ export class ActivityService {
       .set({
         RoomId: roomId,
         UserEmail: userEmail,
+        Id: uuid.v4().toString(),
       })
       .then(() => {
         console.log('MakeActive Created or Updated At Firebase');
@@ -44,7 +45,6 @@ export class ActivityService {
       for (let i = 0; i < activeUsersSnapShot.docs.length; i++) {
         result.push(activeUsersSnapShot.docs[i].data());
       }
-      console.log(result.length);
       return result;
     } catch (error) {}
   }

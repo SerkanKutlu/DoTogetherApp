@@ -40,6 +40,7 @@ export class RoomService {
           room.CreatedAt = each.data().CreatedAt;
           room.Id = each.data().Id;
           room.UpdatedAt = each.data().UpdatedAt;
+          room.LockedBy = each.data().LockedBy;
           result.push(room);
         });
         let invitedRoomIds: string[] = [];
@@ -64,6 +65,7 @@ export class RoomService {
             room.CreatedAt = each.data().CreatedAt;
             room.Id = each.data().Id;
             room.UpdatedAt = each.data().UpdatedAt;
+            room.LockedBy = each.data().LockedBy;
             result.push(room);
           });
         }
@@ -155,5 +157,20 @@ export class RoomService {
   }
   async DeleteRoomInvite(inviteId: string) {
     await firestore().collection(Collections.Invites).doc(inviteId).delete();
+  }
+  async UpdateRoomLockedBy(roomId: string, newValue: string) {
+    try {
+      await firestore().collection(Collections.Rooms).doc(roomId).update({
+        LockedBy: newValue,
+      });
+    } catch (error) {
+      console.log('update edilemedi');
+    }
+  }
+  TrackRoomUpdates(onResult: any, onError: any, roomId: string) {
+    firestore()
+      .collection(Collections.Rooms)
+      .doc(roomId)
+      .onSnapshot(onResult, onError);
   }
 }
