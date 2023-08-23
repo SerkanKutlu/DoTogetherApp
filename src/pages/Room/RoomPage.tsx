@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, TextInput as TextInputReact, Modal} from 'react-native';
+import {View, TextInput as TextInputReact, Modal, Platform} from 'react-native';
 import {Button, TextInput, IconButton, DataTable} from 'react-native-paper';
 import useStyles from './RoomPageStyle';
 import {RealTimeService} from '../../Services/RealTimeService';
@@ -34,9 +34,11 @@ function RoomPage({navigation, route}): JSX.Element {
   const activityService = new ActivityService();
   const roomService = new RoomService();
   //#endregion
-
+  let i = 0;
   useEffect(() => {
     return () => {
+      activityService.OnActivityChange(Room.Id).off('child_added');
+      activityService.OnActivityChange(Room.Id).off('child_removed');
       if (User != undefined) {
         activityService.DeleteActive(
           User.user.email != undefined ? User.user.email : '',
@@ -46,6 +48,34 @@ function RoomPage({navigation, route}): JSX.Element {
     };
   }, []);
   useEffect(() => {
+    roomService.TrackRoomUpdates(
+      (snapshot: any) => {
+        if (snapshot != undefined) {
+          setRoom(snapshot.data());
+        }
+      },
+      null,
+      Room.Id,
+    );
+    activityService.OnActivityChange(Room.Id).on('child_removed', newVal => {
+      activityService.ReadActivesOnce(Room.Id).then(newActives => {});
+    });
+    activityService.OnActivityChange(Room.Id).on('child_added', newVal => {
+      activityService.ReadActivesOnce(Room.Id).then(newActives => {
+        var result: any[] = new Array();
+        newActives.forEach(each => {
+          result.push(each.toJSON());
+        });
+        setActiveUsers(result);
+        //     var result: any[] = new Array();
+        //     for (let i = 0; i < snapshot.docs.length; i++) {
+        //       result.push(snapshot.docs[i].data());
+        //     }
+        //     console.log('sıkıntı bu mu acaba'); //BURDA SIKINTI VAR. ACTIVITY CHANGE DEN BİR DEĞİŞİKLİKTE ELLİ TANE GELİYOR VE YANLIŞ GELİYOR
+        //     console.log(result);
+        //     //setActiveUsers(result);
+      });
+    });
     realTimeService.OnRoomTextChanged(Room.Id).on('child_changed', newVal => {
       const newText = newVal.val();
       setPageContent(newText);
@@ -60,34 +90,30 @@ function RoomPage({navigation, route}): JSX.Element {
         if (users != undefined && users.length == 0) {
           roomService.UpdateRoomLockedBy(Room.Id, User?.user.email);
         }
-        activityService.MakeActive(
+        // activityService.MakeActive(
+        //   User.user.email != undefined ? User.user.email : '',
+        //   Room.Id,
+        // );
+        activityService.MakeActiveReal(
           User.user.email != undefined ? User.user.email : '',
           Room.Id,
         );
       });
     }
-    activityService.TrackActivityChange(
-      (snapshot: any) => {
-        var result: any[] = new Array();
-        for (let i = 0; i < snapshot.docs.length; i++) {
-          result.push(snapshot.docs[i].data());
-        }
-        console.log('sıkıntı bu mu acaba'); //BURDA SIKINTI VAR. ACTIVITY CHANGE DEN BİR DEĞİŞİKLİKTE ELLİ TANE GELİYOR VE YANLIŞ GELİYOR
-        console.log(result);
-        //setActiveUsers(result);
-      },
-      null,
-      Room.Id,
-    );
-    roomService.TrackRoomUpdates(
-      (snapshot: any) => {
-        if (snapshot != undefined) {
-          setRoom(snapshot.data());
-        }
-      },
-      null,
-      Room.Id,
-    );
+
+    // activityService.TrackActivityChange(
+    //   (snapshot: any) => {
+    //     var result: any[] = new Array();
+    //     for (let i = 0; i < snapshot.docs.length; i++) {
+    //       result.push(snapshot.docs[i].data());
+    //     }
+    //     console.log('sıkıntı bu mu acaba'); //BURDA SIKINTI VAR. ACTIVITY CHANGE DEN BİR DEĞİŞİKLİKTE ELLİ TANE GELİYOR VE YANLIŞ GELİYOR
+    //     console.log(result);
+    //     //setActiveUsers(result);
+    //   },
+    //   null,
+    //   Room.Id,
+    // );
   }, []);
   useEffect(() => {
     if (pageContent != undefined && pageContent.length > 0) {
@@ -96,8 +122,6 @@ function RoomPage({navigation, route}): JSX.Element {
     }
   }, [pageContent]);
   useEffect(() => {
-    console.log('active changed');
-    console.log(activeUsers);
     if (activeUsers != undefined && activeUsers.length == 1) {
       roomService.UpdateRoomLockedBy(Room.Id, activeUsers[0].UserEmail);
     }
@@ -109,8 +133,6 @@ function RoomPage({navigation, route}): JSX.Element {
       roomService.UpdateRoomLockedBy(Room.Id, activeUsers[0].UserEmail);
     }
     if (activeUsers == undefined || activeUsers.length == 0) {
-      console.log('oda zikiş');
-      console.log(activeUsers);
       roomService.UpdateRoomLockedBy(Room.Id, '');
     }
   }, [activeUsers]);
