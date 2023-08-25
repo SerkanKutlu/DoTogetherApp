@@ -160,6 +160,8 @@ export class RoomService {
   }
   async UpdateRoomLockedBy(roomId: string, newValue: string) {
     try {
+      console.log('lock changing to');
+      console.log(newValue);
       await firestore().collection(Collections.Rooms).doc(roomId).update({
         LockedBy: newValue,
       });
