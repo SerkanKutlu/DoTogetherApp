@@ -8,6 +8,7 @@ import {NoteService} from '../../Services/NoteService';
 import {ActivityService} from '../../Services/ActivityService';
 import {RoomService} from '../../Services/RoomService';
 import {Consumer} from 'react-native-paper/lib/typescript/core/settings';
+import {act} from 'react-test-renderer';
 function RoomPage({navigation, route}): JSX.Element {
   //#region States
   const [inviteRoomVisible, setInviteRoomVisible] = useState(false);
@@ -17,18 +18,18 @@ function RoomPage({navigation, route}): JSX.Element {
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
   const [activeUsersPageNumber, setActiveUsersPageNumber] = useState<number>(0);
   const [Room, setRoom] = useState(route.params.Room);
-  const [isFirstEntry, setIsFirstEntry] = useState(true);
-  const [deneme, setDeneme] = useState('sek');
+  const [Param1, setParam1] = useState();
   //#endregion
   //#region Constants
   const styles = useStyles();
-  const User = ActiveUser.GetActiveUser();
+  const User = ActiveUser.GetActiveUser()?.user;
   const activeUserPerPage = 5;
   const fromActiveUsers = activeUsersPageNumber * activeUserPerPage;
   const toActiveUsers = Math.min(
     (activeUsersPageNumber + 1) * activeUserPerPage,
     activeUsers != undefined ? activeUsers.length : 0,
   );
+
   //#endregion
   //#region Service
   const realTimeService = new RealTimeService();
@@ -36,166 +37,91 @@ function RoomPage({navigation, route}): JSX.Element {
   const activityService = new ActivityService();
   const roomService = new RoomService();
   //#endregion
-  let i = 0;
 
   useEffect(() => {
-    console.log('useeffect workted at : ' + Platform.OS);
-    roomService.GetRoomById(Room.Id).then(roomUpdated => {
-      console.log('room updated geliyor');
-      console.log(roomUpdated);
-      if (roomUpdated != undefined) {
-        setRoom(roomUpdated);
-        roomService.TrackRoomUpdates(
-          (snapshot: any) => {
-            console.log('room changed lo');
-            if (snapshot != undefined) {
-              setRoom(snapshot.data());
-            }
-          },
-          null,
-          Room.Id,
-        );
-      }
-    });
+    //roomService.TrackRoomUpdates // BU MESELA 2 KERE DEĞİŞİKLİK YAPILDIYSA YENİ TELEFON ABONE OLANA KADAR, 2 KERE ÇALIŞIYOR.
+    //FİKİR 1 --> LEAVE ' DE setActiveUsers çağır böylece activeUsers trigger'ı tetiklensin orda işlem yap ?
+    //NOTE: useEffect for any state --> her türlü ilk sayfa yüklendiğinde çalışacak. ona göre davran.
+    //OLASI BUG: actives.foreach 'de foreach bitmeden aşağı geçebilir ?
 
-    // activityService.OnActivityChange(Room.Id).on('child_added', newVal => {
-    //   setDeneme('serkan');
-    //   if (isFirstEntry) {
-    //     console.log('first entry, reading once');
-    //     activityService.ReadActivesOnce(Room.Id).then(newActives => {
-    //       var result: any[] = new Array();
-    //       newActives.forEach(each => {
-    //         console.log('each');
-    //         result.push(each.toJSON());
-    //       });
-    //       if (result.length != 0) {
-    //         setActiveUsers(result);
-    //       }
-    //       setIsFirstEntry(false);
-    //       return;
-    //     });
-    //   }
-    //   console.log('new addedd');
-    //   if (
-    //     activeUsers == undefined ||
-    //     (activeUsers != undefined && activeUsers.length == 0)
-    //   ) {
-    //     console.log('aktif yok çünkü actives: ' + activeUsers);
-    //     setActiveUsers([newVal.toJSON()]);
-    //     console.log('ilk user geldi. Locking');
-    //     roomService.UpdateRoomLockedBy(Room.Id, newVal.toJSON().UserEmail);
-    //   } else {
-    //     console.log('aktif var. yenisi Ekleniyor');
-    //     setActiveUsers([...activeUsers, [newVal.toJSON()]]);
-    //   }
-    // });
-    // activityService.OnActivityChange(Room.Id).on('child_removed', newVal => {
-    //   console.log('new deleted');
-    //   console.log(deneme);
-    //   console.log(setActiveUsers([{UserEmail: 'fuck'}]));
-    //   console.log(newVal); //BURADA HEP 1 KERE GELİYOR DÜZGÜN ÇALIŞIYOR. BURDA EKLENİNCE YADA ÇIKARTINCA STATE'İ GÜNCELLEYEREK DEVAM EDELİM. SADECE SAYFA İLK YÜKLENDİĞİNDE ONCE ÇALIŞSIN
-    //   if (activeUsers != undefined && activeUsers.length == 1) {
-    //     setActiveUsers([]);
-    //     console.log('locking sıfırlanıyor');
-    //     roomService.UpdateRoomLockedBy(Room.Id, '');
-    //     return;
-    //   }
-    //   const newValObj = newVal.toJSON();
-    //   console.log('newValObj');
-    //   console.log(newValObj);
-    //   console.log('filtering');
-    //   console.log(activeUsers);
-    //   const newActives = activeUsers?.filter(
-    //     au => au.UserEmail !== newValObj?.UserEmail,
-    //   );
-    //   console.log(newActives);
-    //   setActiveUsers(newActives);
-    //   if (Room.LockedBy == newValObj?.UserEmail) {
-    //     if (newActives != undefined) {
-    //       console.log('locked person leaved. Yenisi lockluyor');
-    //       roomService.UpdateRoomLockedBy(Room.Id, newActives[0].UserEmail);
-    //     }
-    //   }
-    // });
-    activityService.OnActivityChange(Room.Id).on('value', newVal => {
-      activityService.ReadActivesOnce(Room.Id).then(newActives => {
-        console.log('readActivesOkunuyor');
-        console.log(newActives);
-        var result: any[] = new Array();
-        newActives.forEach(each => {
-          result.push(each.toJSON());
-        });
-        if (result.length != 0) {
-          if (result.length == 1) {
-            console.log(result);
-            console.log('1. kişi girdi');
-            roomService.UpdateRoomLockedBy(Room.Id, result[0].UserEmail);
+    //#region SUBSCRIBE TO ACTIVE CHANNEL
+    activityService.OnActivityChangeReal(Room.Id).on('child_added', e => {
+      var jsonNewItem = e.toJSON();
+      setActiveUsers(prevActiveUsers => {
+        // Use the previous state to ensure you have the latest data
+        var result = prevActiveUsers.find(au => au.Id == jsonNewItem?.Id);
+        console.log(result + ': result');
+        if (result == undefined) {
+          if (prevActiveUsers.length == 0) {
+            roomService.UpdateRoomLockedBy(Room.Id, jsonNewItem?.UserEmail);
+            Room.LockedBy = jsonNewItem?.UserEmail;
           }
-
-          setActiveUsers(result);
+          return [...prevActiveUsers, jsonNewItem];
         }
+        return prevActiveUsers;
       });
     });
 
-    realTimeService.OnRoomTextChanged(Room.Id).on('child_changed', newVal => {
-      const newText = newVal.val();
-      setPageContent(newText);
-    });
-    noteService.GetNoteByRoomId(Room.Id).then(content => {
-      if (content != undefined) {
-        setPageContent(content);
-      }
-    });
-    if (User != undefined) {
-      activityService.MakeActiveReal(User?.user.email, Room.Id);
-    }
-    return () => {
-      if (User != undefined) {
-        activityService.DeleteActive(
-          User.user.email != undefined ? User.user.email : '',
-          Room.Id,
-        );
-        console.log('kontrol');
-        console.log(Room.LockedBy);
-        console.log(User.user.email);
-        if (Room.LockedBy == User.user.email) {
-          console.log('locking person çıkmaya karar vermiş');
-          console.log(activeUsers);
-          if (activeUsers.length > 0) {
-            console.log('yenisi lockluyor');
-            var newLockingPerson = activeUsers.find(
-              au => au.UserEmail != Room.LockedBy,
-            );
-            console.log(newLockingPerson);
-            if (newLockingPerson != undefined) {
-              roomService.UpdateRoomLockedBy(
-                Room.Id,
-                newLockingPerson.UserEmail,
-              );
-            }
+    activityService.OnActivityChangeReal(Room.Id).on('child_removed', e => {
+      var jsonNewItem = e.toJSON();
+      setActiveUsers(prevActiveUsers => {
+        // Use the previous state to ensure you have the latest data
+        var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
+        console.log('filtered : ' + Platform.OS);
+        console.log(result);
+        if (jsonNewItem?.UserEmail == Room.LockedBy) {
+          // Kitli olan kişi çıktı
+          if (result.length == 0) {
+            Room.LockedBy = '';
+            roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
+          } else {
+            Room.LockedBy = result[0].UserEmail;
+            roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
           }
         }
-        activityService.OnActivityChange(Room.Id).off('child_added');
-        activityService.OnActivityChange(Room.Id).off('child_removed');
-        activityService.OnActivityChange(Room.Id).off('value');
-      }
+        return result;
+      });
+    });
+
+    //#endregion
+    //#region MAKE USER ACTIVE AT RELATED ROOM IF NOT EXIST
+    if (User != undefined) {
+      activityService.ReadActivesOnceReal(Room.Id).then(actives => {
+        var isRegistered = false;
+        actives.forEach(eachActive => {
+          if (eachActive?.toJSON()?.UserEmail == User.email) {
+            isRegistered = true;
+          }
+        });
+        if (!isRegistered) {
+          activityService.MakeActiveReal(User.email, Room.Id);
+        }
+      });
+      //#endregion
+    }
+    return () => {
+      activityService.OnActivityChangeReal(Room.Id).off('child_added');
+      activityService.DeleteActiveReal(User?.email!, Room.Id);
     };
   }, []);
-  useEffect(() => {
-    if (pageContent != undefined && pageContent.length > 0) {
-      realTimeService.SetRoomText(Room.Id, pageContent);
-      noteService.SaveNote(pageContent, Room.Id);
-    }
-  }, [pageContent]);
 
-  useEffect(() => {}, [Room]);
+  function x() {}
+  useEffect(() => {
+    console.log('Room effected');
+  }, [Room]);
+
+  useEffect(() => {
+    console.log('activeroom effected');
+    console.log(activeUsers);
+  }, [activeUsers]);
+
   function InviteButtonClicked() {
     setInviteRoomVisible(true);
   }
   function ModalInviteButtonClicked() {
     if (User != undefined) {
       realTimeService.SendInvite(
-        User.user.email.toLocaleLowerCase(),
+        User.email.toLocaleLowerCase(),
         userEmailInput.toLocaleLowerCase(),
         Room.Id,
       );
@@ -315,7 +241,7 @@ function RoomPage({navigation, route}): JSX.Element {
       <View style={styles.TextAreaContainer}>
         <TextInputReact
           multiline
-          editable={Room.LockedBy == User?.user.email ? true : false}
+          editable={Room.LockedBy == User?.email ? true : false}
           placeholder="Start Note Together"
           value={pageContent}
           onChangeText={val => {

@@ -24,7 +24,13 @@ export class RealTimeService {
         InvitedBy: invitedby,
         RoomId: roomId,
       })
-      .then(() => {});
+      .then(() => {
+        console.log('added');
+      })
+      .catch(e => {
+        console.log('added2');
+        console.log(e);
+      });
   }
   RemoveReadedInvite(inviteId: string, invited: string) {
     firebase

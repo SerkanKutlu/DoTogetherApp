@@ -22,15 +22,6 @@ export class ActivityService {
         throw new Error('Odaya Katılırken Hata Oluştu.');
       });
   }
-  async DeleteActive(userEmail: string, roomId: string) {
-    firebase
-      .app()
-      .database(
-        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
-      )
-      .ref(`${Sockets.Activity}/${roomId}/${userEmail.replace('.', '')}`)
-      .remove();
-  }
   async GetActiveUsers(roomId: string): Promise<any[] | void> {
     try {
       var result: any[] = new Array();
@@ -45,8 +36,16 @@ export class ActivityService {
       return result;
     } catch (error) {}
   }
-
-  async ReadActivesOnce(roomId: string) {
+  async DeleteActiveReal(userEmail: string, roomId: string) {
+    firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.Activity}/${roomId}/${userEmail.replace('.', '')}`)
+      .remove();
+  }
+  async ReadActivesOnceReal(roomId: string) {
     return await firebase
       .app()
       .database(
@@ -72,7 +71,7 @@ export class ActivityService {
         console.log('Odaya Katılırken Hata Oluştu. Real. ' + e);
       });
   }
-  OnActivityChange(roomId: string) {
+  OnActivityChangeReal(roomId: string) {
     return firebase
       .app()
       .database(
