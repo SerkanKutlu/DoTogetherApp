@@ -7,10 +7,16 @@ export class Room extends BaseEntity {
   UserCount: number;
   IsLocked: boolean = false;
   LockedBy: string = '';
-  constructor(CreatedUserId: string, CreatedUserEmail: string, Title: string) {
+  constructor(
+    CreatedUserId: string,
+    CreatedUserEmail: string,
+    Title: string,
+    LockedBy: string,
+  ) {
     super();
     (this.CreatedUserId = CreatedUserId), (this.Title = Title);
     this.CreatedUserEmail = CreatedUserEmail;
     this.UserCount = 1;
+    this.LockedBy = LockedBy;
   }
 }

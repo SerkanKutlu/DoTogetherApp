@@ -86,6 +86,7 @@ export class RoomService {
           createdRoomsSnapChat.docs[i].data().CreatedUserId,
           createdRoomsSnapChat.docs[i].data().CreatedUserEmail,
           createdRoomsSnapChat.docs[i].data().Title,
+          createdRoomsSnapChat.docs[i].data().LockedBy,
         );
         room.CreatedAt = createdRoomsSnapChat.docs[i].data().CreatedAt;
         room.Id = createdRoomsSnapChat.docs[i].data().Id;

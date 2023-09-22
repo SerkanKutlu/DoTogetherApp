@@ -18,7 +18,6 @@ function RoomPage({navigation, route}): JSX.Element {
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
   const [activeUsersPageNumber, setActiveUsersPageNumber] = useState<number>(0);
   const [Room, setRoom] = useState(route.params.Room);
-  const [Param1, setParam1] = useState();
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -46,13 +45,17 @@ function RoomPage({navigation, route}): JSX.Element {
 
     //#region SUBSCRIBE TO ACTIVE CHANNEL
     activityService.OnActivityChangeReal(Room.Id).on('child_added', e => {
+      console.log('room' + Platform.OS + '   ' + Platform.Version);
+      console.log(Room);
       var jsonNewItem = e.toJSON();
       setActiveUsers(prevActiveUsers => {
         // Use the previous state to ensure you have the latest data
         var result = prevActiveUsers.find(au => au.Id == jsonNewItem?.Id);
-        console.log(result + ': result');
         if (result == undefined) {
-          if (prevActiveUsers.length == 0) {
+          if (prevActiveUsers.length == 0 && Room.LockedBy == '') {
+            console.log(
+              'oda büyüklüğü 0, odaya yeni birisi girdi ve oda kitli değil',
+            );
             roomService.UpdateRoomLockedBy(Room.Id, jsonNewItem?.UserEmail);
             Room.LockedBy = jsonNewItem?.UserEmail;
           }
@@ -67,14 +70,14 @@ function RoomPage({navigation, route}): JSX.Element {
       setActiveUsers(prevActiveUsers => {
         // Use the previous state to ensure you have the latest data
         var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
-        console.log('filtered : ' + Platform.OS);
-        console.log(result);
         if (jsonNewItem?.UserEmail == Room.LockedBy) {
           // Kitli olan kişi çıktı
           if (result.length == 0) {
+            console.log('odadan kitleyen kişi çıktı. Odada kimse kalmamış');
             Room.LockedBy = '';
             roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
           } else {
+            console.log('odadan kitleyen kişi çıktı. Odada en az 1 kişi var');
             Room.LockedBy = result[0].UserEmail;
             roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
           }
@@ -106,14 +109,7 @@ function RoomPage({navigation, route}): JSX.Element {
   }, []);
 
   function x() {}
-  useEffect(() => {
-    console.log('Room effected');
-  }, [Room]);
-
-  useEffect(() => {
-    console.log('activeroom effected');
-    console.log(activeUsers);
-  }, [activeUsers]);
+  useEffect(() => {}, [Room]);
 
   function InviteButtonClicked() {
     setInviteRoomVisible(true);

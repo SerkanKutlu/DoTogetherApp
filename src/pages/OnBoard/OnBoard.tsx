@@ -97,7 +97,11 @@ function OnBoard({navigation}): JSX.Element {
     SetRooms();
   }
   function RoomTitlePressed(room: Room) {
-    navigation.navigate('RoomPage', {Room: room});
+    roomService.GetRoomById(room.Id).then(roomupdated => {
+      console.log('alınan oda : ');
+      console.log(roomupdated);
+      navigation.navigate('RoomPage', {Room: roomupdated});
+    });
   }
   return (
     <View style={styles.container}>
