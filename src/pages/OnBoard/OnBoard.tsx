@@ -98,8 +98,6 @@ function OnBoard({navigation}): JSX.Element {
   }
   function RoomTitlePressed(room: Room) {
     roomService.GetRoomById(room.Id).then(roomupdated => {
-      console.log('alınan oda : ');
-      console.log(roomupdated);
       navigation.navigate('RoomPage', {Room: roomupdated});
     });
   }

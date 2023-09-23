@@ -38,24 +38,21 @@ function RoomPage({navigation, route}): JSX.Element {
   //#endregion
 
   useEffect(() => {
-    //roomService.TrackRoomUpdates // BU MESELA 2 KERE DEĞİŞİKLİK YAPILDIYSA YENİ TELEFON ABONE OLANA KADAR, 2 KERE ÇALIŞIYOR.
-    //FİKİR 1 --> LEAVE ' DE setActiveUsers çağır böylece activeUsers trigger'ı tetiklensin orda işlem yap ?
-    //NOTE: useEffect for any state --> her türlü ilk sayfa yüklendiğinde çalışacak. ona göre davran.
-    //OLASI BUG: actives.foreach 'de foreach bitmeden aşağı geçebilir ?
-
+    //#region SUBSCRIBE TO NOTE CHANNEL
+    noteService.OnNoteChangeReal(Room.Id).on('value', newVal => {
+      if (Room.LockedBy != User?.email) {
+        setPageContent(newVal.toJSON()?.Content);
+      }
+    });
+    //#endregion
     //#region SUBSCRIBE TO ACTIVE CHANNEL
     activityService.OnActivityChangeReal(Room.Id).on('child_added', e => {
-      console.log('room' + Platform.OS + '   ' + Platform.Version);
-      console.log(Room);
       var jsonNewItem = e.toJSON();
       setActiveUsers(prevActiveUsers => {
         // Use the previous state to ensure you have the latest data
         var result = prevActiveUsers.find(au => au.Id == jsonNewItem?.Id);
         if (result == undefined) {
           if (prevActiveUsers.length == 0 && Room.LockedBy == '') {
-            console.log(
-              'oda büyüklüğü 0, odaya yeni birisi girdi ve oda kitli değil',
-            );
             roomService.UpdateRoomLockedBy(Room.Id, jsonNewItem?.UserEmail);
             Room.LockedBy = jsonNewItem?.UserEmail;
           }
@@ -73,11 +70,9 @@ function RoomPage({navigation, route}): JSX.Element {
         if (jsonNewItem?.UserEmail == Room.LockedBy) {
           // Kitli olan kişi çıktı
           if (result.length == 0) {
-            console.log('odadan kitleyen kişi çıktı. Odada kimse kalmamış');
             Room.LockedBy = '';
             roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
           } else {
-            console.log('odadan kitleyen kişi çıktı. Odada en az 1 kişi var');
             Room.LockedBy = result[0].UserEmail;
             roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
           }
@@ -100,16 +95,19 @@ function RoomPage({navigation, route}): JSX.Element {
           activityService.MakeActiveReal(User.email, Room.Id);
         }
       });
-      //#endregion
     }
+    //#endregion
+    //#region Return
     return () => {
       activityService.OnActivityChangeReal(Room.Id).off('child_added');
       activityService.DeleteActiveReal(User?.email!, Room.Id);
     };
+    //#endregion
   }, []);
 
-  function x() {}
-  useEffect(() => {}, [Room]);
+  function UpdatePageContent(newVal: any) {
+    if (Room.LockedBy == User?.email) noteService.SaveNoteReal(newVal, Room.Id);
+  }
 
   function InviteButtonClicked() {
     setInviteRoomVisible(true);
@@ -241,6 +239,7 @@ function RoomPage({navigation, route}): JSX.Element {
           placeholder="Start Note Together"
           value={pageContent}
           onChangeText={val => {
+            UpdatePageContent(val);
             setPageContent(val);
           }}
         />
