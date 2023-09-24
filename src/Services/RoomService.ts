@@ -4,7 +4,9 @@ import {Collections} from '../Constants/Collections';
 import {Room} from '../Models/Room';
 import {UserRoom} from '../Models/UserRoom';
 import {ActiveUser} from './AuthService';
+import {firebase} from '@react-native-firebase/auth';
 import {create} from 'react-test-renderer';
+import {Sockets} from '../Constants/Sockets';
 export class RoomService {
   async CreateRoom(title: string) {
     const user = ActiveUser.GetActiveUser();

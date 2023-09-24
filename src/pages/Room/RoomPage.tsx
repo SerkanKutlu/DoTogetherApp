@@ -39,6 +39,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [Room, setRoom] = useState(route.params.Room);
   const [isKickedFromRoom, setIsKickedFromRoom] = useState(false);
   const [anchorPosition, setAnchorPosition] = useState({x: 0, y: 0});
+  const [isRoomDeleted, setIsRoomDeleted] = useState(false);
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -63,19 +64,20 @@ function RoomPage({navigation, route}): JSX.Element {
   }
   function CloseRoomClicked() {
     Alert.alert(
-      'Confirmation', // Title of the alert
-      'This room and all notes of it will be deleted. Are you sure ?', // Message of the alert
+      'Confirmation',
+      'This room and all notes of it will be deleted. Are you sure ?',
       [
         {
-          text: 'YES', // Button text
+          text: 'YES',
           onPress: () => {
-            // Code to run when the user presses the button
-            roomService.DeleteRoom(Room.Id);
-            navigation.navigate('OnBoard');
+            setIsRoomDeleted(true);
+            roomService.DeleteRoom(Room.Id).then(() => {
+              navigation.navigate('OnBoard');
+            });
           },
         },
         {
-          text: 'NO', // Button text
+          text: 'NO',
         },
       ],
     );
@@ -123,12 +125,17 @@ function RoomPage({navigation, route}): JSX.Element {
       setActiveUsers(prevActiveUsers => {
         // Use the previous state to ensure you have the latest data
         var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
-        if (!isKickedFromRoom && jsonNewItem?.UserEmail == User.email) {
+        console.log('IS THIS ROOM DELETED ?');
+        if (
+          !isKickedFromRoom &&
+          jsonNewItem?.UserEmail == User.email &&
+          !isRoomDeleted
+        ) {
           setIsKickedFromRoom(true);
           console.log('eyvah odadan atıldım : ' + Platform.OS);
           Alert.alert(
             'Sorry', // Title of the alert
-            'The founder removed you out of the room.', // Message of the alert
+            'The founder removed you out of the room or room is deleted.', // Message of the alert
             [
               {
                 text: 'OK', // Button text
@@ -164,14 +171,22 @@ function RoomPage({navigation, route}): JSX.Element {
           newResult == undefined ||
           newResult._data == undefined
         ) {
-          Alert.alert('Sorry', 'The founder closed the room', [
-            {
-              text: 'OK',
-              onPress: () => {
-                navigation.navigate('OnBoard');
-              },
-            },
-          ]);
+          if (Room.CreatedUserEmail == User?.email) {
+            navigation.navigate('OnBoard');
+          } else {
+            Alert.alert(
+              'Sorry',
+              'The founder removed you out of the room or room is deleted.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    navigation.navigate('OnBoard');
+                  },
+                },
+              ],
+            );
+          }
         } else {
           console.log(newResult._data);
           Room.LockedBy = newResult._data.LockedBy;
