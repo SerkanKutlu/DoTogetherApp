@@ -36,6 +36,7 @@ export class RoomService {
             each.data().CreatedUserId,
             each.data().CreatedUserEmail,
             each.data().Title,
+            each.data().LockedBy,
           );
           room.CreatedAt = each.data().CreatedAt;
           room.Id = each.data().Id;
@@ -61,6 +62,7 @@ export class RoomService {
               each.data().CreatedUserId,
               each.data().CreatedUserEmail,
               each.data().Title,
+              each.data().LockedBy,
             );
             room.CreatedAt = each.data().CreatedAt;
             room.Id = each.data().Id;
@@ -129,6 +131,23 @@ export class RoomService {
       }
     });
   }
+  async DeleteRoom(roomId: string) {
+    await firestore().collection(Collections.Rooms).doc(roomId).delete();
+    const userRoomsSnapshot = await firestore()
+      .collection(Collections.UserRooms)
+      .where('RoomId', '==', roomId)
+      .get();
+    userRoomsSnapshot.docs.forEach(async each => {
+      if (each.data().RoomId == roomId) {
+        let deleteId = each.data().Id;
+        await firestore()
+          .collection(Collections.UserRooms)
+          .doc(deleteId)
+          .delete();
+      }
+    });
+  }
+
   async CreateRoomInvite(item: any) {
     await firestore()
       .collection(Collections.Invites)

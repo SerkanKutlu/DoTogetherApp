@@ -62,7 +62,23 @@ function RoomPage({navigation, route}): JSX.Element {
     roomService.UpdateRoomLockedBy(Room.Id, newController);
   }
   function CloseRoomClicked() {
-    console.log('room deleting');
+    Alert.alert(
+      'Confirmation', // Title of the alert
+      'This room and all notes of it will be deleted. Are you sure ?', // Message of the alert
+      [
+        {
+          text: 'YES', // Button text
+          onPress: () => {
+            // Code to run when the user presses the button
+            roomService.DeleteRoom(Room.Id);
+            navigation.navigate('OnBoard');
+          },
+        },
+        {
+          text: 'NO', // Button text
+        },
+      ],
+    );
   }
   const [visible, setVisible] = React.useState(false);
 
@@ -143,9 +159,25 @@ function RoomPage({navigation, route}): JSX.Element {
 
     roomService.TrackRoomUpdates(
       newResult => {
-        Room.LockedBy = newResult._data.LockedBy;
-        let newRoom = {...Room};
-        setRoom(newRoom);
+        if (
+          newResult._data == 'undefined' ||
+          newResult == undefined ||
+          newResult._data == undefined
+        ) {
+          Alert.alert('Sorry', 'The founder closed the room', [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.navigate('OnBoard');
+              },
+            },
+          ]);
+        } else {
+          console.log(newResult._data);
+          Room.LockedBy = newResult._data.LockedBy;
+          let newRoom = {...Room};
+          setRoom(newRoom);
+        }
       },
       null,
       Room.Id,
@@ -431,13 +463,17 @@ function RoomPage({navigation, route}): JSX.Element {
                 leadingIcon={'account-plus'}
               />
               <Divider />
-              <Menu.Item
-                onPress={() => {
-                  CloseRoomClicked();
-                }}
-                title="Close Room"
-                leadingIcon={'delete'}
-              />
+              {Room.CreatedUserEmail == User?.email ? (
+                <Menu.Item
+                  onPress={() => {
+                    CloseRoomClicked();
+                  }}
+                  title="Close Room"
+                  leadingIcon={'delete'}
+                />
+              ) : (
+                ''
+              )}
             </Menu>
           </View>
         </View>
