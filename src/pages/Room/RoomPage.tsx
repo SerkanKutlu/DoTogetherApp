@@ -1,23 +1,40 @@
 import React, {useState, useEffect} from 'react';
-import {View, TextInput as TextInputReact, Modal, Platform} from 'react-native';
-import {Button, TextInput, IconButton, DataTable} from 'react-native-paper';
+import {
+  View,
+  TextInput as TextInputReact,
+  Modal,
+  useWindowDimensions,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  Platform,
+  Alert,
+} from 'react-native';
+import {
+  Button,
+  TextInput,
+  IconButton,
+  DataTable,
+  List,
+} from 'react-native-paper';
 import useStyles from './RoomPageStyle';
 import {RealTimeService} from '../../Services/RealTimeService';
 import {ActiveUser} from '../../Services/AuthService';
 import {NoteService} from '../../Services/NoteService';
 import {ActivityService} from '../../Services/ActivityService';
 import {RoomService} from '../../Services/RoomService';
-import {Consumer} from 'react-native-paper/lib/typescript/core/settings';
-import {act} from 'react-test-renderer';
 function RoomPage({navigation, route}): JSX.Element {
   //#region States
   const [inviteRoomVisible, setInviteRoomVisible] = useState(false);
   const [activeUsersVisible, setActiveUsersVisible] = useState(false);
+  const [userOptionsModalVisible, setUserOptionsModalVisible] = useState(false);
+  const [choosenUserOptions, setChoosenUserOptions] = useState('');
   const [userEmailInput, setUserEmailInput] = useState('');
   const [pageContent, setPageContent] = useState('');
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
   const [activeUsersPageNumber, setActiveUsersPageNumber] = useState<number>(0);
   const [Room, setRoom] = useState(route.params.Room);
+  const [isKickedFromRoom, setIsKickedFromRoom] = useState(false);
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -28,6 +45,7 @@ function RoomPage({navigation, route}): JSX.Element {
     (activeUsersPageNumber + 1) * activeUserPerPage,
     activeUsers != undefined ? activeUsers.length : 0,
   );
+  const {width, height} = useWindowDimensions();
 
   //#endregion
   //#region Service
@@ -36,7 +54,12 @@ function RoomPage({navigation, route}): JSX.Element {
   const activityService = new ActivityService();
   const roomService = new RoomService();
   //#endregion
-
+  function GiveControlClicked(newController: string) {
+    roomService.UpdateRoomLockedBy(Room.Id, newController);
+  }
+  function RemoveFromRoomClicked(removedEmail: string) {
+    activityService.DeleteActiveReal(removedEmail, Room.Id);
+  }
   useEffect(() => {
     //#region SUBSCRIBE TO NOTE CHANNEL
     noteService.OnNoteChangeReal(Room.Id).on('value', newVal => {
@@ -67,6 +90,24 @@ function RoomPage({navigation, route}): JSX.Element {
       setActiveUsers(prevActiveUsers => {
         // Use the previous state to ensure you have the latest data
         var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
+        if (!isKickedFromRoom && jsonNewItem?.UserEmail == User.email) {
+          setIsKickedFromRoom(true);
+          console.log('eyvah odadan atıldım : ' + Platform.OS);
+          Alert.alert(
+            'Sorry', // Title of the alert
+            'The founder removed you out of the room.', // Message of the alert
+            [
+              {
+                text: 'OK', // Button text
+                onPress: () => {
+                  // Code to run when the user presses the button
+                  roomService.DeleteUserFromRoomUser(Room.Id, User?.id);
+                  navigation.navigate('OnBoard');
+                },
+              },
+            ],
+          );
+        }
         if (jsonNewItem?.UserEmail == Room.LockedBy) {
           // Kitli olan kişi çıktı
           if (result.length == 0) {
@@ -80,6 +121,18 @@ function RoomPage({navigation, route}): JSX.Element {
         return result;
       });
     });
+    //#endregion
+    //#region Sub to Room changes
+
+    roomService.TrackRoomUpdates(
+      newResult => {
+        Room.LockedBy = newResult._data.LockedBy;
+        let newRoom = {...Room};
+        setRoom(newRoom);
+      },
+      null,
+      Room.Id,
+    );
 
     //#endregion
     //#region MAKE USER ACTIVE AT RELATED ROOM IF NOT EXIST
@@ -100,6 +153,7 @@ function RoomPage({navigation, route}): JSX.Element {
     //#region Return
     return () => {
       activityService.OnActivityChangeReal(Room.Id).off('child_added');
+      activityService.OnActivityChangeReal(Room.Id).off('child_removed');
       activityService.DeleteActiveReal(User?.email!, Room.Id);
     };
     //#endregion
@@ -167,7 +221,96 @@ function RoomPage({navigation, route}): JSX.Element {
         visible={activeUsersVisible}
         onRequestClose={() => {
           setActiveUsersVisible(false);
-        }}>
+        }}
+        style={{width: '100%'}}>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={userOptionsModalVisible}
+          onRequestClose={() => {
+            setUserOptionsModalVisible(false);
+          }}
+          style={{width: '100%'}}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <IconButton
+                icon="close"
+                size={20}
+                onPress={() => setUserOptionsModalVisible(false)}
+                style={styles.modalCloseBtn}
+              />
+              <View>
+                <List.Subheader>{choosenUserOptions}</List.Subheader>
+                {Room.LockedBy == User?.email ? (
+                  <List.Item
+                    onPressOut={() =>
+                      Alert.alert(
+                        'Confirm',
+                        'Are you sure to give control to another person?', // Message of the alert
+                        [
+                          {
+                            text: 'YES',
+                            onPress: () => {
+                              GiveControlClicked(choosenUserOptions);
+                            },
+                          },
+                          {
+                            text: 'NO',
+                            onPress: () => {},
+                          },
+                        ],
+                      )
+                    }
+                    title="Give Control"
+                    left={props => (
+                      <List.Icon
+                        {...props}
+                        icon="circle-small"
+                        style={{marginRight: 0, paddingRight: 0}}
+                      />
+                    )}
+                    style={{width: '90%'}}
+                  />
+                ) : (
+                  ''
+                )}
+                {Room.CreatedUserEmail == User?.email ? (
+                  <List.Item
+                    onPressOut={() =>
+                      Alert.alert(
+                        'Confirm',
+                        'Are you sure to remove this person from the room ?', // Message of the alert
+                        [
+                          {
+                            text: 'YES',
+                            onPress: () => {
+                              RemoveFromRoomClicked(choosenUserOptions);
+                            },
+                          },
+                          {
+                            text: 'NO',
+                            onPress: () => {},
+                          },
+                        ],
+                      )
+                    }
+                    title="Remove From The Room"
+                    left={props => (
+                      <List.Icon
+                        {...props}
+                        icon="circle-small"
+                        style={{marginRight: 0, paddingRight: 0}}
+                      />
+                    )}
+                    style={{width: '90%'}}
+                  />
+                ) : (
+                  ''
+                )}
+              </View>
+            </View>
+          </View>
+        </Modal>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <IconButton
@@ -176,7 +319,7 @@ function RoomPage({navigation, route}): JSX.Element {
               onPress={() => setActiveUsersVisible(false)}
               style={styles.modalCloseBtn}
             />
-            <DataTable>
+            <DataTable style={{flex: 1, width: '100%'}}>
               <DataTable.Header>
                 <DataTable.Title style={{flex: 5}}>User</DataTable.Title>
                 <DataTable.Title style={{flex: 1}}> </DataTable.Title>
@@ -184,15 +327,27 @@ function RoomPage({navigation, route}): JSX.Element {
 
               {activeUsers?.slice(fromActiveUsers, toActiveUsers).map(item => (
                 <DataTable.Row key={item.Id}>
-                  <DataTable.Cell style={{flex: 5}}>
-                    {item.UserEmail}
-                  </DataTable.Cell>
+                  {Room.LockedBy == item.UserEmail ? (
+                    <DataTable.Cell
+                      style={{flex: 5}}
+                      textStyle={{fontWeight: 'bold'}}>
+                      {item.UserEmail}
+                    </DataTable.Cell>
+                  ) : (
+                    <DataTable.Cell style={{flex: 5}}>
+                      {item.UserEmail}
+                    </DataTable.Cell>
+                  )}
+
                   <DataTable.Cell style={{flex: 1}}>
-                    {Room.LockedBy == item.UserEmail ? (
+                    {item.UserEmail != User?.email ? (
                       <IconButton
-                        icon="chat-processing-outline"
-                        onPress={() => {}}
-                        disabled
+                        size={width / 25}
+                        icon="cog"
+                        onPress={() => {
+                          setUserOptionsModalVisible(true);
+                          setChoosenUserOptions(item.UserEmail);
+                        }}
                       />
                     ) : (
                       ''
@@ -219,6 +374,7 @@ function RoomPage({navigation, route}): JSX.Element {
           </View>
         </View>
       </Modal>
+
       <View style={styles.navbar}>
         <IconButton
           icon="arrow-left-thin"

@@ -9,7 +9,7 @@ export class RoomService {
   async CreateRoom(title: string) {
     const user = ActiveUser.GetActiveUser();
     if (user != undefined) {
-      let newRoom = new Room(user.user.id, user.user.email, title);
+      let newRoom = new Room(user.user.id, user.user.email, title, '');
       await firestore()
         .collection(Collections.Rooms)
         .doc(newRoom.Id)
@@ -114,17 +114,20 @@ export class RoomService {
         });
     }
   }
-  async LeaveRoom(roomId: string) {
-    await firestore()
+  async DeleteUserFromRoomUser(roomId: string, userId: string) {
+    const userRoomsSnapshot = await firestore()
       .collection(Collections.UserRooms)
-      .doc(roomId)
-      .delete()
-      .then(() => {
-        console.log('Room Created At Firebase');
-      })
-      .catch(e => {
-        throw new Error('Odadan Ayrılırken Hata Oluştu.');
-      });
+      .where('UserId', '==', userId)
+      .get();
+    userRoomsSnapshot.docs.forEach(async each => {
+      if (each.data().RoomId == roomId) {
+        let deleteId = each.data().Id;
+        await firestore()
+          .collection(Collections.UserRooms)
+          .doc(deleteId)
+          .delete();
+      }
+    });
   }
   async CreateRoomInvite(item: any) {
     await firestore()
