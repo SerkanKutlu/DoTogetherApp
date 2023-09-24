@@ -21,6 +21,15 @@ export default function useStyles() {
       alignItems: 'center',
       marginTop: 22,
     },
+    roomListHeaderContainer: {
+      height: '10%',
+    },
+    roomListHeader: {
+      fontWeight: 'bold',
+      fontSize: '30@s',
+      color: '#4A4A4A',
+      margin: '10@s',
+    },
     modalView: {
       margin: 20,
       backgroundColor: 'white',

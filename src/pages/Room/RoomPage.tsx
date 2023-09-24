@@ -39,7 +39,7 @@ function RoomPage({navigation, route}): JSX.Element {
   //#region Constants
   const styles = useStyles();
   const User = ActiveUser.GetActiveUser()?.user;
-  const activeUserPerPage = 5;
+  const activeUserPerPage = 10;
   const fromActiveUsers = activeUsersPageNumber * activeUserPerPage;
   const toActiveUsers = Math.min(
     (activeUsersPageNumber + 1) * activeUserPerPage,
@@ -252,6 +252,7 @@ function RoomPage({navigation, route}): JSX.Element {
                             text: 'YES',
                             onPress: () => {
                               GiveControlClicked(choosenUserOptions);
+                              setUserOptionsModalVisible(false);
                             },
                           },
                           {
@@ -285,6 +286,7 @@ function RoomPage({navigation, route}): JSX.Element {
                             text: 'YES',
                             onPress: () => {
                               RemoveFromRoomClicked(choosenUserOptions);
+                              setUserOptionsModalVisible(false);
                             },
                           },
                           {
@@ -388,7 +390,9 @@ function RoomPage({navigation, route}): JSX.Element {
           Invite
         </Button>
       </View>
+
       <View style={styles.TextAreaContainer}>
+        <Text style={styles.roomListHeader as any}>{Room.Title}</Text>
         <TextInputReact
           multiline
           editable={Room.LockedBy == User?.email ? true : false}
