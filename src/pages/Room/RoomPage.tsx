@@ -16,6 +16,9 @@ import {
   IconButton,
   DataTable,
   List,
+  PaperProvider,
+  Menu,
+  Divider,
 } from 'react-native-paper';
 import useStyles from './RoomPageStyle';
 import {RealTimeService} from '../../Services/RealTimeService';
@@ -35,6 +38,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [activeUsersPageNumber, setActiveUsersPageNumber] = useState<number>(0);
   const [Room, setRoom] = useState(route.params.Room);
   const [isKickedFromRoom, setIsKickedFromRoom] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState({x: 0, y: 0});
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -57,6 +61,19 @@ function RoomPage({navigation, route}): JSX.Element {
   function GiveControlClicked(newController: string) {
     roomService.UpdateRoomLockedBy(Room.Id, newController);
   }
+  function CloseRoomClicked() {
+    console.log('room deleting');
+  }
+  const [visible, setVisible] = React.useState(false);
+
+  function OpenMenu(event) {
+    event.target.measure((x, y, width, height, pageX, pageY) => {
+      setAnchorPosition({x: pageX, y: pageY + height});
+      setVisible(true);
+    });
+  }
+
+  const closeMenu = () => setVisible(false);
   function RemoveFromRoomClicked(removedEmail: string) {
     activityService.DeleteActiveReal(removedEmail, Room.Id);
   }
@@ -184,227 +201,262 @@ function RoomPage({navigation, route}): JSX.Element {
     setActiveUsersVisible(true);
   }
   return (
-    <View style={styles.container}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={inviteRoomVisible}
-        onRequestClose={() => {
-          setInviteRoomVisible(!inviteRoomVisible);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <IconButton
-              icon="close"
-              size={20}
-              onPress={() => setInviteRoomVisible(false)}
-              style={styles.modalCloseBtn}
-            />
-            <TextInput
-              label="User Email"
-              value={userEmailInput}
-              onChangeText={text => setUserEmailInput(text)}
-              placeholder="Email..."
-              style={styles.userEmailInput as any}
-            />
-            <Button
-              style={styles.modalButton}
-              onPress={async () => await ModalInviteButtonClicked()}>
-              Send
-            </Button>
-          </View>
-        </View>
-      </Modal>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={activeUsersVisible}
-        onRequestClose={() => {
-          setActiveUsersVisible(false);
-        }}
-        style={{width: '100%'}}>
+    <PaperProvider>
+      <View style={styles.container}>
         <Modal
           animationType="slide"
           transparent={true}
-          visible={userOptionsModalVisible}
+          visible={inviteRoomVisible}
           onRequestClose={() => {
-            setUserOptionsModalVisible(false);
-          }}
-          style={{width: '100%'}}>
+            setInviteRoomVisible(!inviteRoomVisible);
+          }}>
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
               <IconButton
                 icon="close"
                 size={20}
-                onPress={() => setUserOptionsModalVisible(false)}
+                onPress={() => setInviteRoomVisible(false)}
                 style={styles.modalCloseBtn}
               />
-              <View>
-                <List.Subheader>{choosenUserOptions}</List.Subheader>
-                {Room.LockedBy == User?.email ? (
-                  <List.Item
-                    onPressOut={() =>
-                      Alert.alert(
-                        'Confirm',
-                        'Are you sure to give control to another person?', // Message of the alert
-                        [
-                          {
-                            text: 'YES',
-                            onPress: () => {
-                              GiveControlClicked(choosenUserOptions);
-                              setUserOptionsModalVisible(false);
-                            },
-                          },
-                          {
-                            text: 'NO',
-                            onPress: () => {},
-                          },
-                        ],
-                      )
-                    }
-                    title="Give Control"
-                    left={props => (
-                      <List.Icon
-                        {...props}
-                        icon="circle-small"
-                        style={{marginRight: 0, paddingRight: 0}}
-                      />
-                    )}
-                    style={{width: '90%'}}
-                  />
-                ) : (
-                  ''
-                )}
-                {Room.CreatedUserEmail == User?.email ? (
-                  <List.Item
-                    onPressOut={() =>
-                      Alert.alert(
-                        'Confirm',
-                        'Are you sure to remove this person from the room ?', // Message of the alert
-                        [
-                          {
-                            text: 'YES',
-                            onPress: () => {
-                              RemoveFromRoomClicked(choosenUserOptions);
-                              setUserOptionsModalVisible(false);
-                            },
-                          },
-                          {
-                            text: 'NO',
-                            onPress: () => {},
-                          },
-                        ],
-                      )
-                    }
-                    title="Remove From The Room"
-                    left={props => (
-                      <List.Icon
-                        {...props}
-                        icon="circle-small"
-                        style={{marginRight: 0, paddingRight: 0}}
-                      />
-                    )}
-                    style={{width: '90%'}}
-                  />
-                ) : (
-                  ''
-                )}
-              </View>
+              <TextInput
+                label="User Email"
+                value={userEmailInput}
+                onChangeText={text => setUserEmailInput(text)}
+                placeholder="Email..."
+                style={styles.userEmailInput as any}
+              />
+              <Button
+                style={styles.modalButton}
+                onPress={async () => await ModalInviteButtonClicked()}>
+                Send
+              </Button>
             </View>
           </View>
         </Modal>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <IconButton
-              icon="close"
-              size={20}
-              onPress={() => setActiveUsersVisible(false)}
-              style={styles.modalCloseBtn}
-            />
-            <DataTable style={{flex: 1, width: '100%'}}>
-              <DataTable.Header>
-                <DataTable.Title style={{flex: 5}}>User</DataTable.Title>
-                <DataTable.Title style={{flex: 1}}> </DataTable.Title>
-              </DataTable.Header>
-
-              {activeUsers?.slice(fromActiveUsers, toActiveUsers).map(item => (
-                <DataTable.Row key={item.Id}>
-                  {Room.LockedBy == item.UserEmail ? (
-                    <DataTable.Cell
-                      style={{flex: 5}}
-                      textStyle={{fontWeight: 'bold'}}>
-                      {item.UserEmail}
-                    </DataTable.Cell>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={activeUsersVisible}
+          onRequestClose={() => {
+            setActiveUsersVisible(false);
+          }}
+          style={{width: '100%'}}>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={userOptionsModalVisible}
+            onRequestClose={() => {
+              setUserOptionsModalVisible(false);
+            }}
+            style={{width: '100%'}}>
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <IconButton
+                  icon="close"
+                  size={20}
+                  onPress={() => setUserOptionsModalVisible(false)}
+                  style={styles.modalCloseBtn}
+                />
+                <View>
+                  <List.Subheader>{choosenUserOptions}</List.Subheader>
+                  {Room.LockedBy == User?.email ? (
+                    <List.Item
+                      onPressOut={() =>
+                        Alert.alert(
+                          'Confirm',
+                          'Are you sure to give control to another person?', // Message of the alert
+                          [
+                            {
+                              text: 'YES',
+                              onPress: () => {
+                                GiveControlClicked(choosenUserOptions);
+                                setUserOptionsModalVisible(false);
+                              },
+                            },
+                            {
+                              text: 'NO',
+                              onPress: () => {},
+                            },
+                          ],
+                        )
+                      }
+                      title="Give Control"
+                      left={props => (
+                        <List.Icon
+                          {...props}
+                          icon="circle-small"
+                          style={{marginRight: 0, paddingRight: 0}}
+                        />
+                      )}
+                      style={{width: '90%'}}
+                    />
                   ) : (
-                    <DataTable.Cell style={{flex: 5}}>
-                      {item.UserEmail}
-                    </DataTable.Cell>
+                    ''
                   )}
-
-                  <DataTable.Cell style={{flex: 1}}>
-                    {item.UserEmail != User?.email ? (
-                      <IconButton
-                        size={width / 25}
-                        icon="cog"
-                        onPress={() => {
-                          setUserOptionsModalVisible(true);
-                          setChoosenUserOptions(item.UserEmail);
-                        }}
-                      />
-                    ) : (
-                      ''
-                    )}
-                  </DataTable.Cell>
-                </DataTable.Row>
-              ))}
-
-              <DataTable.Pagination
-                page={activeUsersPageNumber}
-                numberOfPages={Math.ceil(
-                  activeUsers == undefined
-                    ? 0
-                    : activeUsers.length / activeUserPerPage,
-                )}
-                onPageChange={page => setActiveUsersPageNumber(page)}
-                label={`${fromActiveUsers + 1}-${toActiveUsers} of ${
-                  activeUsers == undefined ? 0 : activeUsers.length
-                }`}
-                numberOfItemsPerPage={activeUserPerPage}
-                showFastPaginationControls
+                  {Room.CreatedUserEmail == User?.email ? (
+                    <List.Item
+                      onPressOut={() =>
+                        Alert.alert(
+                          'Confirm',
+                          'Are you sure to remove this person from the room ?', // Message of the alert
+                          [
+                            {
+                              text: 'YES',
+                              onPress: () => {
+                                RemoveFromRoomClicked(choosenUserOptions);
+                                setUserOptionsModalVisible(false);
+                              },
+                            },
+                            {
+                              text: 'NO',
+                              onPress: () => {},
+                            },
+                          ],
+                        )
+                      }
+                      title="Remove From The Room"
+                      left={props => (
+                        <List.Icon
+                          {...props}
+                          icon="circle-small"
+                          style={{marginRight: 0, paddingRight: 0}}
+                        />
+                      )}
+                      style={{width: '90%'}}
+                    />
+                  ) : (
+                    ''
+                  )}
+                </View>
+              </View>
+            </View>
+          </Modal>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <IconButton
+                icon="close"
+                size={20}
+                onPress={() => setActiveUsersVisible(false)}
+                style={styles.modalCloseBtn}
               />
-            </DataTable>
+              <DataTable style={{flex: 1, width: '100%'}}>
+                <DataTable.Header>
+                  <DataTable.Title style={{flex: 5}}>User</DataTable.Title>
+                  <DataTable.Title style={{flex: 1}}> </DataTable.Title>
+                </DataTable.Header>
+
+                {activeUsers
+                  ?.slice(fromActiveUsers, toActiveUsers)
+                  .map(item => (
+                    <DataTable.Row key={item.Id}>
+                      {Room.LockedBy == item.UserEmail ? (
+                        <DataTable.Cell
+                          style={{flex: 5}}
+                          textStyle={{fontWeight: 'bold'}}>
+                          {item.UserEmail}
+                        </DataTable.Cell>
+                      ) : (
+                        <DataTable.Cell style={{flex: 5}}>
+                          {item.UserEmail}
+                        </DataTable.Cell>
+                      )}
+
+                      <DataTable.Cell style={{flex: 1}}>
+                        {item.UserEmail != User?.email ? (
+                          <IconButton
+                            size={width / 25}
+                            icon="cog"
+                            onPress={() => {
+                              setUserOptionsModalVisible(true);
+                              setChoosenUserOptions(item.UserEmail);
+                            }}
+                          />
+                        ) : (
+                          ''
+                        )}
+                      </DataTable.Cell>
+                    </DataTable.Row>
+                  ))}
+
+                <DataTable.Pagination
+                  page={activeUsersPageNumber}
+                  numberOfPages={Math.ceil(
+                    activeUsers == undefined
+                      ? 0
+                      : activeUsers.length / activeUserPerPage,
+                  )}
+                  onPageChange={page => setActiveUsersPageNumber(page)}
+                  label={`${fromActiveUsers + 1}-${toActiveUsers} of ${
+                    activeUsers == undefined ? 0 : activeUsers.length
+                  }`}
+                  numberOfItemsPerPage={activeUserPerPage}
+                  showFastPaginationControls
+                />
+              </DataTable>
+            </View>
+          </View>
+        </Modal>
+
+        <View style={styles.navbar}>
+          <IconButton
+            icon="arrow-left-thin"
+            size={30}
+            onPress={() => GoBackButtonPressed()}
+          />
+          <Button icon="account" onPress={() => ShowActiveUsers()}>
+            {activeUsers == undefined ? 0 : activeUsers.length}
+          </Button>
+
+          <View>
+            <Menu
+              style={{
+                ...(Platform.OS === 'android'
+                  ? {position: 'absolute', top: anchorPosition.y + 5}
+                  : {}),
+              }}
+              visible={visible}
+              onDismiss={closeMenu}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  size={20}
+                  onPress={event => OpenMenu(event)}
+                />
+              }>
+              <Menu.Item
+                onPress={() => {
+                  InviteButtonClicked();
+                }}
+                title="Invite"
+                leadingIcon={'account-plus'}
+              />
+              <Divider />
+              <Menu.Item
+                onPress={() => {
+                  CloseRoomClicked();
+                }}
+                title="Close Room"
+                leadingIcon={'delete'}
+              />
+            </Menu>
           </View>
         </View>
-      </Modal>
 
-      <View style={styles.navbar}>
-        <IconButton
-          icon="arrow-left-thin"
-          size={30}
-          onPress={() => GoBackButtonPressed()}
-        />
-        <Button icon="account" onPress={() => ShowActiveUsers()}>
-          {activeUsers == undefined ? 0 : activeUsers.length}
-        </Button>
-        <Button icon="account-plus" onPress={() => InviteButtonClicked()}>
-          Invite
-        </Button>
+        <View style={styles.TextAreaContainer}>
+          <Text style={styles.roomListHeader as any}>{Room.Title}</Text>
+          <TextInputReact
+            multiline
+            editable={Room.LockedBy == User?.email ? true : false}
+            placeholder="Start Note Together"
+            value={pageContent}
+            onChangeText={val => {
+              UpdatePageContent(val);
+              setPageContent(val);
+            }}
+          />
+        </View>
       </View>
-
-      <View style={styles.TextAreaContainer}>
-        <Text style={styles.roomListHeader as any}>{Room.Title}</Text>
-        <TextInputReact
-          multiline
-          editable={Room.LockedBy == User?.email ? true : false}
-          placeholder="Start Note Together"
-          value={pageContent}
-          onChangeText={val => {
-            UpdatePageContent(val);
-            setPageContent(val);
-          }}
-        />
-      </View>
-    </View>
+    </PaperProvider>
   );
 }
 export default RoomPage;
