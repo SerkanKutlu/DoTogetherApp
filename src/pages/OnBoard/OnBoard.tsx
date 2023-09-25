@@ -6,6 +6,9 @@ import {
   Text,
   ScrollView,
   Modal,
+  TouchableWithoutFeedback,
+  Keyboard,
+  SafeAreaView,
 } from 'react-native';
 import {Button, TextInput, IconButton, DataTable} from 'react-native-paper';
 import useStyles from './OnBoardStyle';
@@ -102,39 +105,45 @@ function OnBoard({navigation}): JSX.Element {
     });
   }
   return (
-    <View style={styles.container}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={createRoomModalVisible}
-        onRequestClose={() => {
-          setCreateRoomModalVisible(!createRoomModalVisible);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <IconButton
-              icon="close"
-              size={20}
-              onPress={() => setCreateRoomModalVisible(false)}
-              style={styles.modalCloseBtn}
-            />
-            <TextInput
-              label="Room Name"
-              value={roomNameInput}
-              onChangeText={text => setroomNameInput(text)}
-              placeholder="Room Name..."
-              style={styles.roomNameInput as any}
-            />
-            <Button
-              icon="plus"
-              mode="elevated"
-              style={styles.modalButton}
-              onPress={async () => await ModalCreateButtonClicked()}>
-              Create
-            </Button>
-          </View>
-        </View>
-      </Modal>
+    <SafeAreaView style={styles.container}>
+      <TouchableWithoutFeedback
+        onPress={() => console.log('x')}
+        style={{width: '100%', height: '100%'}}>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={createRoomModalVisible}
+          onRequestClose={() => {
+            setCreateRoomModalVisible(!createRoomModalVisible);
+          }}>
+          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <IconButton
+                  icon="close"
+                  size={20}
+                  onPress={() => setCreateRoomModalVisible(false)}
+                  style={styles.modalCloseBtn}
+                />
+                <TextInput
+                  label="Room Name"
+                  value={roomNameInput}
+                  onChangeText={text => setroomNameInput(text)}
+                  placeholder="Room Name..."
+                  style={styles.roomNameInput as any}
+                />
+                <Button
+                  icon="plus"
+                  mode="elevated"
+                  style={styles.modalButton}
+                  onPress={async () => await ModalCreateButtonClicked()}>
+                  Create
+                </Button>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      </TouchableWithoutFeedback>
 
       <View style={styles.navbar}>
         <Button
@@ -183,7 +192,7 @@ function OnBoard({navigation}): JSX.Element {
       <View style={styles.footer}>
         <Text></Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 export default OnBoard;

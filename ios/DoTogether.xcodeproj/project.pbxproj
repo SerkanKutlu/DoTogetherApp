@@ -519,6 +519,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = DoTogether/DoTogether.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KG7S8HF3N3;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = DoTogether/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -548,6 +549,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = DoTogether/DoTogether.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KG7S8HF3N3;
 				INFOPLIST_FILE = DoTogether/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

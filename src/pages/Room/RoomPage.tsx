@@ -9,6 +9,8 @@ import {
   Pressable,
   Platform,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {
   Button,
@@ -257,28 +259,30 @@ function RoomPage({navigation, route}): JSX.Element {
           onRequestClose={() => {
             setInviteRoomVisible(!inviteRoomVisible);
           }}>
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <IconButton
-                icon="close"
-                size={20}
-                onPress={() => setInviteRoomVisible(false)}
-                style={styles.modalCloseBtn}
-              />
-              <TextInput
-                label="User Email"
-                value={userEmailInput}
-                onChangeText={text => setUserEmailInput(text)}
-                placeholder="Email..."
-                style={styles.userEmailInput as any}
-              />
-              <Button
-                style={styles.modalButton}
-                onPress={async () => await ModalInviteButtonClicked()}>
-                Send
-              </Button>
+          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <IconButton
+                  icon="close"
+                  size={20}
+                  onPress={() => setInviteRoomVisible(false)}
+                  style={styles.modalCloseBtn}
+                />
+                <TextInput
+                  label="User Email"
+                  value={userEmailInput}
+                  onChangeText={text => setUserEmailInput(text)}
+                  placeholder="Email..."
+                  style={styles.userEmailInput as any}
+                />
+                <Button
+                  style={styles.modalButton}
+                  onPress={async () => await ModalInviteButtonClicked()}>
+                  Send
+                </Button>
+              </View>
             </View>
-          </View>
+          </TouchableWithoutFeedback>
         </Modal>
         <Modal
           animationType="slide"
