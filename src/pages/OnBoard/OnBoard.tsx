@@ -70,9 +70,9 @@ function OnBoard({navigation}): JSX.Element {
             return;
           });
       });
+    } else {
+      navigation.navigate('Login');
     }
-    SetRooms();
-    RefreshInvites();
   }, []);
   function SetRooms() {
     roomService.GetUserRooms().then(rooms => {

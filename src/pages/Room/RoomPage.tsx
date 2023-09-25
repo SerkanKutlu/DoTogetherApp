@@ -11,6 +11,7 @@ import {
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
+  BackHandler,
 } from 'react-native';
 import {
   Button,
@@ -98,6 +99,13 @@ function RoomPage({navigation, route}): JSX.Element {
     activityService.DeleteActiveReal(removedEmail, Room.Id);
   }
   useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.navigate('OnBoard');
+        return true;
+      },
+    );
     //#region SUBSCRIBE TO NOTE CHANNEL
     noteService.OnNoteChangeReal(Room.Id).on('value', newVal => {
       if (Room.LockedBy != User?.email) {

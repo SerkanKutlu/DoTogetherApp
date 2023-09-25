@@ -5,7 +5,7 @@ import {User} from '@react-native-google-signin/google-signin';
 import useStyles from './LoginStyle';
 import {Button} from 'react-native-paper';
 import {ActiveUser, AuthService} from '../../Services/AuthService';
-import {Platform} from 'react-native';
+import {Platform, Alert} from 'react-native';
 function Login({navigation}): JSX.Element {
   const {width, height} = useWindowDimensions();
   const [showLogin, setShowLogin] = useState(false);
@@ -35,9 +35,37 @@ function Login({navigation}): JSX.Element {
               mode="elevated"
               onPress={async () => {
                 try {
-                  await authService.GoogleLogin();
-                  navigation.navigate('OnBoard');
-                } catch {}
+                  var result = await authService.GoogleLogin();
+                  if (result) {
+                    navigation.navigate('OnBoard');
+                  } else {
+                    Alert.alert(
+                      'Problem Occured',
+                      'Try again to login with google.',
+                      [
+                        {
+                          text: 'OK',
+                        },
+                        {
+                          text: 'NO',
+                        },
+                      ],
+                    );
+                  }
+                } catch {
+                  Alert.alert(
+                    'Problem Occured',
+                    'Try again to login with google.',
+                    [
+                      {
+                        text: 'OK',
+                      },
+                      {
+                        text: 'NO',
+                      },
+                    ],
+                  );
+                }
               }}>
               Continue With Google
             </Button>

@@ -1,6 +1,6 @@
 //DoTogether!
 import React, {useEffect} from 'react';
-import {SafeAreaView, Text} from 'react-native';
+import {SafeAreaView, BackHandler} from 'react-native';
 import useStyles from './AppStyle';
 import {NavigationContainer} from '@react-navigation/native';
 import Login from './pages/Login/Login';
@@ -12,10 +12,24 @@ const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
   const styles = useStyles();
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        return true;
+      },
+    );
+    return () => {
+      // Clean up the event listener when the component is unmounted
+      backHandler.remove();
+    };
+  }, []);
   return (
     <NavigationContainer>
       <SafeAreaView style={styles.container}>
-        <Stack.Navigator initialRouteName="Login">
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{gestureEnabled: false}}>
           <Stack.Screen
             name="Login"
             component={Login}
@@ -29,7 +43,7 @@ function App(): JSX.Element {
           <Stack.Screen
             name="RoomPage"
             component={RoomPage}
-            options={{headerShown: false}}
+            options={{headerShown: false, gestureEnabled: true}}
           />
           <Stack.Screen
             name="Invites"
