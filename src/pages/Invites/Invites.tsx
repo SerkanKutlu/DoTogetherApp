@@ -57,9 +57,9 @@ function Invites({navigation, route}): JSX.Element {
   async function ApproveBtnClicked(item: any) {
     try {
       await roomService.JoinRoom(item.RoomId);
-      roomService.DeleteRoomInvite(item.InviteId);
       roomService.DeleteRoomInvite(item.InviteId).then(() => {
         RefreshInvites();
+        realTimeService.InviteAccepted(item.RoomId);
       });
     } catch (error) {
       console.log('oda onaylanamadı. Tekrar dene.');

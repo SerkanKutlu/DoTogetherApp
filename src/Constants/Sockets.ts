@@ -3,4 +3,5 @@ export enum Sockets {
   RoomText = '/RoomText',
   Activity = '/Activity',
   Notes = '/Notes',
+  AcceptedInvites = '/AcceptedInvites',
 }

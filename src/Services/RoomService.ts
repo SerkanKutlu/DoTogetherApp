@@ -7,6 +7,7 @@ import {ActiveUser} from './AuthService';
 import {firebase} from '@react-native-firebase/auth';
 import {create} from 'react-test-renderer';
 import {Sockets} from '../Constants/Sockets';
+import uuid from 'react-native-uuid';
 export class RoomService {
   async CreateRoom(title: string) {
     const user = ActiveUser.GetActiveUser();
@@ -105,7 +106,7 @@ export class RoomService {
   async JoinRoom(roomId: string) {
     var user = ActiveUser.GetActiveUser();
     if (user != undefined) {
-      let newUserRoom = new UserRoom(roomId, user.user.id);
+      let newUserRoom = new UserRoom(roomId, user.user.id, user.user.email);
       await firestore()
         .collection(Collections.UserRooms)
         .doc(newUserRoom.Id)
@@ -190,6 +191,39 @@ export class RoomService {
       });
     } catch (error) {
       console.log('update edilemedi');
+    }
+  }
+  async GetRoomUsers(roomId: string): Promise<any[] | undefined> {
+    var user = ActiveUser.GetActiveUser();
+    if (user != undefined) {
+      var result = new Array<any>();
+      try {
+        var userRoomsSnapchat = await firestore()
+          .collection(Collections.UserRooms)
+          .where('RoomId', '==', roomId)
+          .get();
+        userRoomsSnapchat.docs.forEach(each => {
+          var roomUser = {
+            UserEmail: each.data().UserEmail,
+            UserId: each.data().UserId,
+            Id: uuid.v4().toString(),
+            IsOnline: false,
+          };
+          result.push(roomUser);
+        });
+        var room = await this.GetRoomById(roomId);
+        var roomCreator = {
+          Id: uuid.v4().toString(),
+          UserEmail: room?.CreatedUserEmail,
+          UserId: room?.CreatedUserId,
+          IsOnline: false,
+        };
+        result.push(roomCreator);
+        return result;
+      } catch (e) {
+        console.log('Kullanıcılar çekilirken hata oluştu: ' + e);
+        return undefined;
+      }
     }
   }
   TrackRoomUpdates(onResult: any, onError: any, roomId: string) {

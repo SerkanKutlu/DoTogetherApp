@@ -64,4 +64,28 @@ export class RealTimeService {
       )
       .ref(`${Sockets.RoomText}/${roomId}`);
   }
+  InviteAccepted(roomId: string) {
+    firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.AcceptedInvites}/${roomId}`)
+      .set({
+        Id: uuid.v4().toString(),
+        RoomId: roomId,
+      })
+      .then(() => {})
+      .catch(e => {
+        console.log('invite accepted gönderilemedi.' + e);
+      });
+  }
+  OnInviteAccepttedChanged(roomId: string) {
+    return firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.AcceptedInvites}/${roomId}`);
+  }
 }

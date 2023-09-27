@@ -38,7 +38,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [userEmailInput, setUserEmailInput] = useState('');
   const [pageContent, setPageContent] = useState('');
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
-  const [activeUsersPageNumber, setActiveUsersPageNumber] = useState<number>(0);
+  const [users, setUsers] = useState<any[]>([]);
   const [Room, setRoom] = useState(route.params.Room);
   const [isKickedFromRoom, setIsKickedFromRoom] = useState(false);
   const [anchorPosition, setAnchorPosition] = useState({x: 0, y: 0});
@@ -47,20 +47,24 @@ function RoomPage({navigation, route}): JSX.Element {
   //#region Constants
   const styles = useStyles();
   const User = ActiveUser.GetActiveUser()?.user;
-  const activeUserPerPage = 10;
-  const fromActiveUsers = activeUsersPageNumber * activeUserPerPage;
-  const toActiveUsers = Math.min(
-    (activeUsersPageNumber + 1) * activeUserPerPage,
-    activeUsers != undefined ? activeUsers.length : 0,
-  );
+
   const {width, height} = useWindowDimensions();
 
   //#endregion
-  //#region Service
+  //#region Services
   const realTimeService = new RealTimeService();
   const noteService = new NoteService();
   const activityService = new ActivityService();
   const roomService = new RoomService();
+  //#endregion
+  //#region Paginations
+  const [usersPageNumber, setUsersPageNumber] = useState<number>(0);
+  const userPerPage = 10;
+  const fromUsers = usersPageNumber * userPerPage;
+  const toUsers = Math.min(
+    (usersPageNumber + 1) * userPerPage,
+    users != undefined ? users.length : 0,
+  );
   //#endregion
   function GiveControlClicked(newController: string) {
     roomService.UpdateRoomLockedBy(Room.Id, newController);
@@ -99,6 +103,12 @@ function RoomPage({navigation, route}): JSX.Element {
     activityService.DeleteActiveReal(removedEmail, Room.Id);
   }
   useEffect(() => {
+    //Get ALL Users
+    roomService.GetRoomUsers(Room.Id).then(us => {
+      if (us != undefined) {
+        setUsers(us);
+      }
+    });
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
@@ -106,6 +116,15 @@ function RoomPage({navigation, route}): JSX.Element {
         return true;
       },
     );
+    //#region SUBSCRIBE TO ACCEPTEDINVITES CHANNEL
+    realTimeService.OnInviteAccepttedChanged(Room.Id).on('child_added', e => {
+      roomService.GetRoomUsers(Room.Id).then(us => {
+        if (us != undefined) {
+          setUsers(us);
+        }
+      });
+    });
+    //#endregion
     //#region SUBSCRIBE TO NOTE CHANNEL
     noteService.OnNoteChangeReal(Room.Id).on('value', newVal => {
       if (Room.LockedBy != User?.email) {
@@ -135,14 +154,12 @@ function RoomPage({navigation, route}): JSX.Element {
       setActiveUsers(prevActiveUsers => {
         // Use the previous state to ensure you have the latest data
         var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
-        console.log('IS THIS ROOM DELETED ?');
         if (
           !isKickedFromRoom &&
           jsonNewItem?.UserEmail == User.email &&
           !isRoomDeleted
         ) {
           setIsKickedFromRoom(true);
-          console.log('eyvah odadan atıldım : ' + Platform.OS);
           Alert.alert(
             'Sorry', // Title of the alert
             'The founder removed you out of the room or room is deleted.', // Message of the alert
@@ -198,7 +215,6 @@ function RoomPage({navigation, route}): JSX.Element {
             );
           }
         } else {
-          console.log(newResult._data);
           Room.LockedBy = newResult._data.LockedBy;
           let newRoom = {...Room};
           setRoom(newRoom);
@@ -228,7 +244,10 @@ function RoomPage({navigation, route}): JSX.Element {
     return () => {
       activityService.OnActivityChangeReal(Room.Id).off('child_added');
       activityService.OnActivityChangeReal(Room.Id).off('child_removed');
+      realTimeService.OnInviteAccepttedChanged(Room.Id).off('child_added');
+      noteService.OnNoteChangeReal(Room.Id).off('value');
       activityService.DeleteActiveReal(User?.email!, Room.Id);
+      backHandler.remove();
     };
     //#endregion
   }, []);
@@ -254,6 +273,7 @@ function RoomPage({navigation, route}): JSX.Element {
     navigation.navigate('OnBoard');
   }
 
+  useEffect(() => {}, [users]);
   function ShowActiveUsers() {
     setActiveUsersVisible(true);
   }
@@ -403,52 +423,47 @@ function RoomPage({navigation, route}): JSX.Element {
                   <DataTable.Title style={{flex: 5}}>User</DataTable.Title>
                   <DataTable.Title style={{flex: 1}}> </DataTable.Title>
                 </DataTable.Header>
-
-                {activeUsers
-                  ?.slice(fromActiveUsers, toActiveUsers)
-                  .map(item => (
-                    <DataTable.Row key={item.Id}>
-                      {Room.LockedBy == item.UserEmail ? (
-                        <DataTable.Cell
-                          style={{flex: 5}}
-                          textStyle={{fontWeight: 'bold'}}>
-                          {item.UserEmail}
-                        </DataTable.Cell>
-                      ) : (
-                        <DataTable.Cell style={{flex: 5}}>
-                          {item.UserEmail}
-                        </DataTable.Cell>
-                      )}
-
-                      <DataTable.Cell style={{flex: 1}}>
-                        {item.UserEmail != User?.email ? (
-                          <IconButton
-                            size={width / 25}
-                            icon="cog"
-                            onPress={() => {
-                              setUserOptionsModalVisible(true);
-                              setChoosenUserOptions(item.UserEmail);
-                            }}
-                          />
-                        ) : (
-                          ''
-                        )}
+                {users?.slice(fromUsers, toUsers).map(item => (
+                  <DataTable.Row key={item.Id}>
+                    {Room.LockedBy == item.UserEmail ? (
+                      <DataTable.Cell
+                        style={{flex: 5}}
+                        textStyle={{fontWeight: 'bold'}}>
+                        {item.UserEmail}
                       </DataTable.Cell>
-                    </DataTable.Row>
-                  ))}
+                    ) : (
+                      <DataTable.Cell style={{flex: 5}}>
+                        {item.UserEmail}
+                      </DataTable.Cell>
+                    )}
+
+                    <DataTable.Cell style={{flex: 1}}>
+                      {item.UserEmail != User?.email ? (
+                        <IconButton
+                          size={width / 25}
+                          icon="cog"
+                          onPress={() => {
+                            setUserOptionsModalVisible(true);
+                            setChoosenUserOptions(item.UserEmail);
+                          }}
+                        />
+                      ) : (
+                        ''
+                      )}
+                    </DataTable.Cell>
+                  </DataTable.Row>
+                ))}
 
                 <DataTable.Pagination
-                  page={activeUsersPageNumber}
+                  page={usersPageNumber}
                   numberOfPages={Math.ceil(
-                    activeUsers == undefined
-                      ? 0
-                      : activeUsers.length / activeUserPerPage,
+                    users == undefined ? 0 : users.length / userPerPage,
                   )}
-                  onPageChange={page => setActiveUsersPageNumber(page)}
-                  label={`${fromActiveUsers + 1}-${toActiveUsers} of ${
-                    activeUsers == undefined ? 0 : activeUsers.length
+                  onPageChange={page => setUsersPageNumber(page)}
+                  label={`${fromUsers + 1}-${toUsers} of ${
+                    users == undefined ? 0 : users.length
                   }`}
-                  numberOfItemsPerPage={activeUserPerPage}
+                  numberOfItemsPerPage={userPerPage}
                   showFastPaginationControls
                 />
               </DataTable>
@@ -463,7 +478,7 @@ function RoomPage({navigation, route}): JSX.Element {
             onPress={() => GoBackButtonPressed()}
           />
           <Button icon="account" onPress={() => ShowActiveUsers()}>
-            {activeUsers == undefined ? 0 : activeUsers.length}
+            {users == undefined ? 0 : users.length}
           </Button>
 
           <View>
