@@ -106,7 +106,64 @@ function RoomPage({navigation, route}): JSX.Element {
     //Get ALL Users
     roomService.GetRoomUsers(Room.Id).then(us => {
       if (us != undefined) {
-        setUsers(us);
+        setUsers(prev => {
+          return us;
+        });
+        activityService.OnActivityChangeReal(Room.Id).on('child_added', e => {
+          var jsonNewItem = e.toJSON();
+          setActiveUsers(prevActiveUsers => {
+            // Use the previous state to ensure you have the latest data
+            var result = prevActiveUsers.find(au => au.Id == jsonNewItem?.Id);
+            if (result == undefined) {
+              if (prevActiveUsers.length == 0 && Room.LockedBy == '') {
+                roomService.UpdateRoomLockedBy(Room.Id, jsonNewItem?.UserEmail);
+                Room.LockedBy = jsonNewItem?.UserEmail;
+              }
+              return [...prevActiveUsers, jsonNewItem];
+            }
+            return prevActiveUsers;
+          });
+        });
+
+        activityService.OnActivityChangeReal(Room.Id).on('child_removed', e => {
+          var jsonNewItem = e.toJSON();
+          setActiveUsers(prevActiveUsers => {
+            // Use the previous state to ensure you have the latest data
+            var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
+            if (
+              !isKickedFromRoom &&
+              jsonNewItem?.UserEmail == User.email &&
+              !isRoomDeleted
+            ) {
+              setIsKickedFromRoom(true);
+              Alert.alert(
+                'Sorry', // Title of the alert
+                'The founder removed you out of the room or room is deleted.', // Message of the alert
+                [
+                  {
+                    text: 'OK', // Button text
+                    onPress: () => {
+                      // Code to run when the user presses the button
+                      roomService.DeleteUserFromRoomUser(Room.Id, User?.id);
+                      navigation.navigate('OnBoard');
+                    },
+                  },
+                ],
+              );
+            }
+            if (jsonNewItem?.UserEmail == Room.LockedBy) {
+              // Kitli olan kişi çıktı
+              if (result.length == 0) {
+                Room.LockedBy = '';
+                roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
+              } else {
+                Room.LockedBy = result[0].UserEmail;
+                roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
+              }
+            }
+            return result;
+          });
+        });
       }
     });
     const backHandler = BackHandler.addEventListener(
@@ -133,61 +190,7 @@ function RoomPage({navigation, route}): JSX.Element {
     });
     //#endregion
     //#region SUBSCRIBE TO ACTIVE CHANNEL
-    activityService.OnActivityChangeReal(Room.Id).on('child_added', e => {
-      var jsonNewItem = e.toJSON();
-      setActiveUsers(prevActiveUsers => {
-        // Use the previous state to ensure you have the latest data
-        var result = prevActiveUsers.find(au => au.Id == jsonNewItem?.Id);
-        if (result == undefined) {
-          if (prevActiveUsers.length == 0 && Room.LockedBy == '') {
-            roomService.UpdateRoomLockedBy(Room.Id, jsonNewItem?.UserEmail);
-            Room.LockedBy = jsonNewItem?.UserEmail;
-          }
-          return [...prevActiveUsers, jsonNewItem];
-        }
-        return prevActiveUsers;
-      });
-    });
 
-    activityService.OnActivityChangeReal(Room.Id).on('child_removed', e => {
-      var jsonNewItem = e.toJSON();
-      setActiveUsers(prevActiveUsers => {
-        // Use the previous state to ensure you have the latest data
-        var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
-        if (
-          !isKickedFromRoom &&
-          jsonNewItem?.UserEmail == User.email &&
-          !isRoomDeleted
-        ) {
-          setIsKickedFromRoom(true);
-          Alert.alert(
-            'Sorry', // Title of the alert
-            'The founder removed you out of the room or room is deleted.', // Message of the alert
-            [
-              {
-                text: 'OK', // Button text
-                onPress: () => {
-                  // Code to run when the user presses the button
-                  roomService.DeleteUserFromRoomUser(Room.Id, User?.id);
-                  navigation.navigate('OnBoard');
-                },
-              },
-            ],
-          );
-        }
-        if (jsonNewItem?.UserEmail == Room.LockedBy) {
-          // Kitli olan kişi çıktı
-          if (result.length == 0) {
-            Room.LockedBy = '';
-            roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
-          } else {
-            Room.LockedBy = result[0].UserEmail;
-            roomService.UpdateRoomLockedBy(Room.Id, Room.LockedBy);
-          }
-        }
-        return result;
-      });
-    });
     //#endregion
     //#region Sub to Room changes
 
@@ -253,17 +256,41 @@ function RoomPage({navigation, route}): JSX.Element {
   }, []);
 
   useEffect(() => {
-    for (let j = 0; j < users.length; j++) {
+    console.log('activeusers efftectede +  ' + Platform.OS);
+    console.log(activeUsers);
+    let updatedUsers = [...users];
+    for (let j = 0; j < updatedUsers.length; j++) {
       for (let i = 0; i < activeUsers.length; i++) {
-        if (users[j].UserEmail == activeUsers[i].UserEmail) {
-          users[j].IsOnline = true;
+        if (updatedUsers[j].UserEmail == activeUsers[i].UserEmail) {
+          let updatedUsers = [...users];
+          updatedUsers[j].IsOnline = true;
           break;
         } else {
-          users[j].IsOnline = false;
+          updatedUsers[j].IsOnline = false;
         }
       }
     }
-  }, [activeUsers, users]);
+    setUsers(updatedUsers);
+    console.log('for bitti updated users' + Platform.OS);
+    console.log(updatedUsers);
+    console.log('for bitti  users' + Platform.OS);
+    console.log(users);
+  }, [activeUsers]);
+
+  function compareUsers(a, b) {
+    if (a.IsOnline === b.IsOnline) {
+      // If IsOnline is the same, compare by UserEmail
+      return a.UserEmail.localeCompare(b.UserEmail);
+    } else {
+      // Sort by IsOnline in descending order (true comes before false)
+      return b.IsOnline - a.IsOnline;
+    }
+  }
+  useEffect(() => {
+    console.log('users efftectede +  ' + Platform.OS);
+    users.sort(compareUsers);
+    console.log(users);
+  }, [users]);
   function UpdatePageContent(newVal: any) {
     if (Room.LockedBy == User?.email) noteService.SaveNoteReal(newVal, Room.Id);
   }
@@ -440,11 +467,18 @@ function RoomPage({navigation, route}): JSX.Element {
                     {Room.LockedBy == item.UserEmail ? (
                       <DataTable.Cell
                         style={{flex: 5}}
-                        textStyle={{fontWeight: 'bold'}}>
+                        textStyle={{
+                          fontWeight: 'bold',
+                          color: item.IsOnline ? 'green' : 'black',
+                        }}>
                         {item.UserEmail}
                       </DataTable.Cell>
                     ) : (
-                      <DataTable.Cell style={{flex: 5}}>
+                      <DataTable.Cell
+                        style={{flex: 5}}
+                        textStyle={{
+                          color: item.IsOnline ? 'green' : 'black',
+                        }}>
                         {item.UserEmail}
                       </DataTable.Cell>
                     )}
