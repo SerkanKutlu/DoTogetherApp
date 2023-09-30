@@ -1,13 +1,14 @@
 import React, {useState, useEffect} from 'react';
-import {DataTable, IconButton, Button} from 'react-native-paper';
+import {DataTable, IconButton, ActivityIndicator} from 'react-native-paper';
 import {RoomService} from '../../Services/RoomService';
 import {RealTimeService} from '../../Services/RealTimeService';
 import {ActiveUser} from '../../Services/AuthService';
-import {View, Text} from 'react-native';
+import {View, Text, BackHandler} from 'react-native';
 import useStyles from './InvitesStyle';
 function Invites({navigation, route}): JSX.Element {
   const [invites, setInvites] = useState<any[]>(route.params.Invites);
   const [invitesPageNumber, setInvitesPageNumber] = React.useState<number>(0);
+  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
   const itemPerPage = 5;
   const fromInvites = invitesPageNumber * itemPerPage;
   const toInvites = Math.min(
@@ -19,6 +20,13 @@ function Invites({navigation, route}): JSX.Element {
   const User = ActiveUser.GetActiveUser();
   const styles = useStyles();
   useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.navigate('OnBoard');
+        return true;
+      },
+    );
     if (User != undefined) {
       realTimeService.OnInvite(User.user.email).on('child_added', newVal => {
         const inviteId = newVal.val().InviteId;
@@ -50,15 +58,23 @@ function Invites({navigation, route}): JSX.Element {
           });
       });
     }
+    return () => {
+      backHandler.remove();
+      if (User != undefined) {
+        realTimeService.OnInvite(User.user.email).off('child_added');
+      }
+    };
   }, []);
   function GoBackButtonPressed() {
     navigation.navigate('OnBoard');
   }
   async function ApproveBtnClicked(item: any) {
     try {
+      setIsLoadingVisible(true);
       await roomService.JoinRoom(item.RoomId);
       roomService.DeleteRoomInvite(item.InviteId).then(() => {
         RefreshInvites();
+        setIsLoadingVisible(false);
         realTimeService.InviteAccepted(item.RoomId);
       });
     } catch (error) {
@@ -82,6 +98,11 @@ function Invites({navigation, route}): JSX.Element {
   }
   return (
     <View style={styles.container}>
+      <ActivityIndicator
+        animating={isLoadingVisible}
+        style={styles.loadingIcon}
+        size={'small'}
+      />
       <View style={styles.navbar}>
         <IconButton
           icon="arrow-left-thin"

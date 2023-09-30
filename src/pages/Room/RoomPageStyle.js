@@ -15,6 +15,11 @@ export default function useStyles() {
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+    loadingIcon: {
+      position: 'absolute',
+      bottom: height / 2,
+      right: width / 2,
+    },
     centeredView: {
       flex: 1,
       justifyContent: 'center',

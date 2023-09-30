@@ -8,6 +8,11 @@ export default function useStyles() {
     container: {
       flex: 1,
     },
+    loadingIcon: {
+      position: 'absolute',
+      bottom: height / 2,
+      right: width / 2,
+    },
     navbar: {
       flex: 1,
       flexDirection: 'row',

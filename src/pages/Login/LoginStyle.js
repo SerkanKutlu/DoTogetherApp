@@ -13,6 +13,11 @@ export default function useStyles() {
       alignItems: 'center',
       marginVertical: '50@s',
     },
+    loadingIcon: {
+      position: 'absolute',
+      bottom: height / 2,
+      right: width / 2,
+    },
     header: {
       fontWeight: 'bold',
       fontSize: '30@s',

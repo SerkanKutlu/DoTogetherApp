@@ -11,9 +11,9 @@ export class RealTimeService {
       .ref(`${Sockets.Invite}/${activeUserEmail.replace('.', '')}`);
   }
 
-  SendInvite(invitedby: string, invited: string, roomId: string) {
+  async SendInvite(invitedby: string, invited: string, roomId: string) {
     const inviteId = uuid.v4().toString();
-    firebase
+    await firebase
       .app()
       .database(
         'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',

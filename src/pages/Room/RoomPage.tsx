@@ -22,6 +22,7 @@ import {
   PaperProvider,
   Menu,
   Divider,
+  ActivityIndicator,
 } from 'react-native-paper';
 import useStyles from './RoomPageStyle';
 import {RealTimeService} from '../../Services/RealTimeService';
@@ -45,6 +46,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [anchorPosition, setAnchorPosition] = useState({x: 0, y: 0});
   const [isRoomDeleted, setIsRoomDeleted] = useState(false);
   const [userExistAtThisRoom, setUserExistAtThisRoom] = useState(false);
+  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -68,8 +70,20 @@ function RoomPage({navigation, route}): JSX.Element {
     users != undefined ? users.length : 0,
   );
   //#endregion
-  function GiveControlClicked(newController: string) {
-    roomService.UpdateRoomLockedBy(Room.Id, newController.UserEmail);
+  async function GiveControlClicked(newController: string) {
+    setIsLoadingVisible(true);
+    await roomService.UpdateRoomLockedBy(Room.Id, newController.UserEmail);
+    Alert.alert(
+      'Success',
+      'Control has been released', // Message of the alert
+      [
+        {
+          text: 'OK',
+          onPress: () => {},
+        },
+      ],
+    );
+    setIsLoadingVisible(false);
   }
   function CloseRoomClicked() {
     Alert.alert(
@@ -79,8 +93,10 @@ function RoomPage({navigation, route}): JSX.Element {
         {
           text: 'YES',
           onPress: () => {
+            setIsLoadingVisible(true);
             setIsRoomDeleted(true);
             roomService.DeleteRoom(Room.Id).then(() => {
+              setIsRoomDeleted(false);
               navigation.navigate('OnBoard');
             });
           },
@@ -101,10 +117,22 @@ function RoomPage({navigation, route}): JSX.Element {
   }
 
   const closeMenu = () => setVisible(false);
-  function RemoveFromRoomClicked(removedEmail: string) {
-    activityService.DeleteActiveReal(removedEmail.UserEmail, Room.Id);
-    roomService.DeleteUserFromRoomUser(Room.Id, removedEmail.UserId);
+  async function RemoveFromRoomClicked(removedEmail: string) {
+    setIsLoadingVisible(true);
+    await activityService.DeleteActiveReal(removedEmail.UserEmail, Room.Id);
+    await roomService.DeleteUserFromRoomUser(Room.Id, removedEmail.UserId);
     realTimeService.SomeoneKicked(Room.Id, removedEmail.UserEmail, Room.Title);
+    Alert.alert(
+      'Success',
+      'User has been kicked', // Message of the alert
+      [
+        {
+          text: 'OK',
+          onPress: () => {},
+        },
+      ],
+    );
+    setIsLoadingVisible(false);
   }
   useEffect(() => {
     //Get ALL Users
@@ -359,14 +387,44 @@ function RoomPage({navigation, route}): JSX.Element {
   function InviteButtonClicked() {
     setInviteRoomVisible(true);
   }
-  function ModalInviteButtonClicked() {
+  async function ModalInviteButtonClicked() {
     if (User != undefined) {
-      realTimeService.SendInvite(
-        User.email.toLocaleLowerCase(),
-        userEmailInput.toLocaleLowerCase(),
-        Room.Id,
-      );
-      setInviteRoomVisible(false);
+      try {
+        setIsLoadingVisible(true);
+        await realTimeService.SendInvite(
+          User.email.toLocaleLowerCase(),
+          userEmailInput.toLocaleLowerCase(),
+          Room.Id,
+        );
+        setIsLoadingVisible(false);
+
+        Alert.alert(
+          'Success',
+          'Invite has been sent', // Message of the alert
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setInviteRoomVisible(false);
+              },
+            },
+          ],
+        );
+      } catch {
+        setIsLoadingVisible(false);
+        Alert.alert(
+          'Failed',
+          'Try Again', // Message of the alert
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setInviteRoomVisible(false);
+              },
+            },
+          ],
+        );
+      }
     }
   }
   function GoBackButtonPressed() {
@@ -381,6 +439,11 @@ function RoomPage({navigation, route}): JSX.Element {
     return (
       <PaperProvider>
         <View style={styles.container}>
+          <ActivityIndicator
+            animating={isLoadingVisible}
+            style={styles.loadingIcon}
+            size={'small'}
+          />
           <Modal
             animationType="slide"
             transparent={true}
@@ -451,7 +514,7 @@ function RoomPage({navigation, route}): JSX.Element {
                             [
                               {
                                 text: 'YES',
-                                onPress: () => {
+                                onPress: async () => {
                                   GiveControlClicked(choosenUserOptions);
                                   setUserOptionsModalVisible(false);
                                 },
@@ -485,8 +548,10 @@ function RoomPage({navigation, route}): JSX.Element {
                             [
                               {
                                 text: 'YES',
-                                onPress: () => {
-                                  RemoveFromRoomClicked(choosenUserOptions);
+                                onPress: async () => {
+                                  await RemoveFromRoomClicked(
+                                    choosenUserOptions,
+                                  );
                                   setUserOptionsModalVisible(false);
                                 },
                               },

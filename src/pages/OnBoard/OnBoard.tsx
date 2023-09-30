@@ -11,7 +11,12 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
-import {Button, TextInput, IconButton, DataTable} from 'react-native-paper';
+import {
+  Button,
+  TextInput,
+  IconButton,
+  ActivityIndicator,
+} from 'react-native-paper';
 import useStyles from './OnBoardStyle';
 import {RoomService} from '../../Services/RoomService';
 import {Room} from '../../Models/Room';
@@ -24,11 +29,12 @@ function OnBoard({navigation}): JSX.Element {
   const [roomNameInput, setroomNameInput] = useState('');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [invites, setInvites] = useState<any[]>([]);
+  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
   //#endregion
   //#region ConstVariables
   const styles = useStyles();
   const User = ActiveUser.GetActiveUser();
-
+  const {width, height} = useWindowDimensions();
   //#endregion
   //#region  Service
   const roomService = new RoomService();
@@ -38,9 +44,11 @@ function OnBoard({navigation}): JSX.Element {
   //#endregion
 
   useEffect(() => {
-    navigation.addListener('focus', () => {
-      SetRooms();
-      RefreshInvites();
+    navigation.addListener('focus', async () => {
+      setIsLoadingVisible(true);
+      await SetRooms();
+      await RefreshInvites();
+      setIsLoadingVisible(false);
     });
 
     if (User != undefined) {
@@ -78,12 +86,11 @@ function OnBoard({navigation}): JSX.Element {
       navigation.navigate('Login');
     }
   }, []);
-  function SetRooms() {
-    roomService.GetUserRooms().then(rooms => {
-      if (rooms != undefined) {
-        setRooms(rooms);
-      }
-    });
+  async function SetRooms() {
+    var rooms = await roomService.GetUserRooms();
+    if (rooms != undefined) {
+      setRooms(rooms);
+    }
   }
   async function RefreshInvites() {
     try {
@@ -99,17 +106,26 @@ function OnBoard({navigation}): JSX.Element {
     setCreateRoomModalVisible(true);
   }
   async function ModalCreateButtonClicked() {
+    setIsLoadingVisible(true);
     setCreateRoomModalVisible(false);
     await roomService.CreateRoom(roomNameInput);
-    SetRooms();
+    await SetRooms();
+    setIsLoadingVisible(false);
   }
   function RoomTitlePressed(room: Room) {
+    setIsLoadingVisible(true);
     roomService.GetRoomById(room.Id).then(roomupdated => {
       navigation.navigate('RoomPage', {Room: roomupdated});
+      setIsLoadingVisible(false);
     });
   }
   return (
     <SafeAreaView style={styles.container}>
+      <ActivityIndicator
+        animating={isLoadingVisible}
+        style={styles.loadingIcon}
+        size={'small'}
+      />
       <TouchableWithoutFeedback
         onPress={() => console.log('x')}
         style={{width: '100%', height: '100%'}}>
@@ -148,7 +164,6 @@ function OnBoard({navigation}): JSX.Element {
           </TouchableWithoutFeedback>
         </Modal>
       </TouchableWithoutFeedback>
-
       <View style={styles.navbar}>
         <Button
           icon="account-multiple-plus"

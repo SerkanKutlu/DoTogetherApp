@@ -48,7 +48,7 @@ function App(): JSX.Element {
           <Stack.Screen
             name="Invites"
             component={Invites}
-            options={{headerShown: false}}
+            options={{headerShown: false, gestureEnabled: true}}
           />
         </Stack.Navigator>
       </SafeAreaView>

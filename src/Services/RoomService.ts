@@ -120,9 +120,6 @@ export class RoomService {
     }
   }
   async DeleteUserFromRoomUser(roomId: string, userId: string) {
-    console.log('user will deleted');
-    console.log(roomId);
-    console.log(userId);
     const userRoomsSnapshot = await firestore()
       .collection(Collections.UserRooms)
       .where('UserId', '==', userId)
