@@ -30,6 +30,8 @@ function OnBoard({navigation}): JSX.Element {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [invites, setInvites] = useState<any[]>([]);
   const [isLoadingVisible, setIsLoadingVisible] = useState(false);
+  const [isRoomNameErrorMessageDisabled, setIsRoomNameErrorMessageDisabled] =
+    useState('none');
   //#endregion
   //#region ConstVariables
   const styles = useStyles();
@@ -105,12 +107,24 @@ function OnBoard({navigation}): JSX.Element {
   function CreateRoomButtonClicked() {
     setCreateRoomModalVisible(true);
   }
+  useEffect(() => {
+    const regex = /[a-zA-Z]/;
+    if (roomNameInput.length > 0 && regex.test(roomNameInput)) {
+      setIsRoomNameErrorMessageDisabled('none');
+    } else {
+      setIsRoomNameErrorMessageDisabled('flex');
+    }
+    if (roomNameInput.length == 0) setIsRoomNameErrorMessageDisabled('none');
+  }, [roomNameInput]);
   async function ModalCreateButtonClicked() {
-    setIsLoadingVisible(true);
-    setCreateRoomModalVisible(false);
-    await roomService.CreateRoom(roomNameInput);
-    await SetRooms();
-    setIsLoadingVisible(false);
+    const regex = /[a-zA-Z]/;
+    if (roomNameInput.length > 0 && regex.test(roomNameInput)) {
+      setIsLoadingVisible(true);
+      setCreateRoomModalVisible(false);
+      await roomService.CreateRoom(roomNameInput);
+      await SetRooms();
+      setIsLoadingVisible(false);
+    }
   }
   function RoomTitlePressed(room: Room) {
     setIsLoadingVisible(true);
@@ -152,6 +166,14 @@ function OnBoard({navigation}): JSX.Element {
                   placeholder="Room Name..."
                   style={styles.roomNameInput as any}
                 />
+                <Text
+                  style={{
+                    color: 'red',
+                    marginTop: 10,
+                    display: isRoomNameErrorMessageDisabled as any,
+                  }}>
+                  Invalid Room Name
+                </Text>
                 <Button
                   icon="plus"
                   mode="elevated"
