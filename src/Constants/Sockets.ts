@@ -4,4 +4,5 @@ export enum Sockets {
   Activity = '/Activity',
   Notes = '/Notes',
   AcceptedInvites = '/AcceptedInvites',
+  SomeoneKicked = '/SomeoneKicked',
 }

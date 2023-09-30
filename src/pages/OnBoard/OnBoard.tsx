@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import {Button, TextInput, IconButton, DataTable} from 'react-native-paper';
 import useStyles from './OnBoardStyle';
@@ -16,6 +17,7 @@ import {RoomService} from '../../Services/RoomService';
 import {Room} from '../../Models/Room';
 import {ActiveUser, AuthService} from '../../Services/AuthService';
 import {RealTimeService} from '../../Services/RealTimeService';
+import {ActivityService} from '../../Services/ActivityService';
 function OnBoard({navigation}): JSX.Element {
   //#region  States
   const [createRoomModalVisible, setCreateRoomModalVisible] = useState(false);
@@ -32,6 +34,7 @@ function OnBoard({navigation}): JSX.Element {
   const roomService = new RoomService();
   const authService = new AuthService();
   const realTimeService = new RealTimeService();
+  const activityService = new ActivityService();
   //#endregion
 
   useEffect(() => {
@@ -39,6 +42,7 @@ function OnBoard({navigation}): JSX.Element {
       SetRooms();
       RefreshInvites();
     });
+
     if (User != undefined) {
       realTimeService.OnInvite(User.user.email).on('child_added', newVal => {
         const inviteId = newVal.val().InviteId;

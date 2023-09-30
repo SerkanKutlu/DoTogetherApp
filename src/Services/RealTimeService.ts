@@ -80,12 +80,56 @@ export class RealTimeService {
         console.log('invite accepted gönderilemedi.' + e);
       });
   }
-  OnInviteAccepttedChanged(roomId: string) {
+  OnInviteAccepttedChanged() {
     return firebase
       .app()
       .database(
         'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
       )
-      .ref(`${Sockets.AcceptedInvites}/${roomId}`);
+      .ref(`${Sockets.AcceptedInvites}`);
+  }
+  RemoveInvitedAppcedted() {
+    return firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.AcceptedInvites}`)
+      .remove();
+  }
+  SomeoneKicked(roomId: string, kickedUserEmail: string, roomTitle: string) {
+    firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.SomeoneKicked}/${roomId}`)
+      .set({
+        Id: uuid.v4().toString(),
+        RoomId: roomId,
+        UserEmail: kickedUserEmail,
+        RoomTitle: roomTitle,
+      })
+      .then(() => {})
+      .catch(e => {
+        console.log('someonekicked gönderilemedi.' + e);
+      });
+  }
+  OnSomeoneKicked(roomId: string) {
+    return firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.SomeoneKicked}`);
+  }
+  RemoveReadedSomeoneKicked(roomId: string) {
+    firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.SomeoneKicked}/${roomId}`)
+      .remove();
   }
 }
