@@ -252,6 +252,18 @@ function RoomPage({navigation, route}): JSX.Element {
     //#endregion
   }, []);
 
+  useEffect(() => {
+    for (let j = 0; j < users.length; j++) {
+      for (let i = 0; i < activeUsers.length; i++) {
+        if (users[j].UserEmail == activeUsers[i].UserEmail) {
+          users[j].IsOnline = true;
+          break;
+        } else {
+          users[j].IsOnline = false;
+        }
+      }
+    }
+  }, [activeUsers, users]);
   function UpdatePageContent(newVal: any) {
     if (Room.LockedBy == User?.email) noteService.SaveNoteReal(newVal, Room.Id);
   }
