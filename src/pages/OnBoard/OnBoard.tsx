@@ -131,8 +131,8 @@ function OnBoard({navigation}): JSX.Element {
     const regex = /[a-zA-Z]/;
     if (roomNameInput.length > 0 && regex.test(roomNameInput)) {
       setIsLoadingVisible(true);
-      setCreateRoomModalVisible(false);
       await roomService.CreateRoom(roomNameInput);
+      setCreateRoomModalVisible(false);
       await SetRooms();
       setIsLoadingVisible(false);
     }
@@ -189,9 +189,18 @@ function OnBoard({navigation}): JSX.Element {
                   icon="plus"
                   mode="elevated"
                   style={styles.modalButton}
+                  disabled={isLoadingVisible}
                   onPress={async () => await ModalCreateButtonClicked()}>
                   {t('create')}
                 </Button>
+                <ActivityIndicator
+                  animating={isLoadingVisible}
+                  style={[
+                    styles.loadingIconAtModal,
+                    {display: isLoadingVisible ? 'flex' : 'none'},
+                  ]}
+                  size={'small'}
+                />
               </View>
             </View>
           </TouchableWithoutFeedback>

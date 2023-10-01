@@ -471,9 +471,18 @@ function RoomPage({navigation, route}): JSX.Element {
                   </Text>
                   <Button
                     style={styles.modalButton}
+                    disabled={isLoadingVisible}
                     onPress={async () => await ModalInviteButtonClicked()}>
                     {t('send')}
                   </Button>
+                  <ActivityIndicator
+                    animating={true}
+                    style={[
+                      styles.loadingIconAtModal,
+                      {display: isLoadingVisible ? 'flex' : 'none'},
+                    ]}
+                    size={'small'}
+                  />
                 </View>
               </View>
             </TouchableWithoutFeedback>
