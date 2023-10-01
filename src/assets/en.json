@@ -32,6 +32,7 @@
     "kickedFroomRoomAlert": "The founder removed you out of the room or room is deleted.",
     "giveControlAskAlert": "Are you sure to give control to another person?",
     "noteAreaPlaceholder": "Start note together ...",
-    "controlReleasedAlert": "Control has been released."
+    "controlReleasedAlert": "Control has been released.",
+    "alreadyInvitedAlert": "This user has a already unanswered invite."
   }
 }

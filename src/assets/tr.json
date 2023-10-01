@@ -32,6 +32,7 @@
     "kickedFroomRoomAlert": "Oda sahibi sizi odadan atmış veya oda kapanmış olabilir.",
     "giveControlAskAlert": "Kontrolü başka birisine vermek istediğinize emin misiniz?",
     "noteAreaPlaceholder": "Not almaya başla ...",
-    "controlReleasedAlert": "Kontrol bırakıldı."
+    "controlReleasedAlert": "Kontrol bırakıldı.",
+    "alreadyInvitedAlert": "Bu kullanıcının henüz cevaplamadığı daveti bulunmaktadır."
   }
 }
