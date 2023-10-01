@@ -33,6 +33,7 @@
     "giveControlAskAlert": "Kontrolü başka birisine vermek istediğinize emin misiniz?",
     "noteAreaPlaceholder": "Not almaya başla ...",
     "controlReleasedAlert": "Kontrol bırakıldı.",
-    "alreadyInvitedAlert": "Bu kullanıcının henüz cevaplamadığı daveti bulunmaktadır."
+    "alreadyInvitedAlert": "Bu kullanıcının henüz cevaplamadığı daveti bulunmaktadır.",
+    "userAlreadyExist": "Bu kullanıcı zaten odaya kayıtlı."
   }
 }

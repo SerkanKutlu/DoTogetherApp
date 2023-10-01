@@ -395,6 +395,21 @@ function RoomPage({navigation, route}): JSX.Element {
     if (emailPattern.test(userEmailInput) && User != undefined) {
       try {
         setIsLoadingVisible(true);
+        console.log(users.length);
+        for (let i = 0; i < users.length; i++) {
+          console.log(users[i].UserEmail);
+          if (users[i].UserEmail == userEmailInput.toLocaleLowerCase()) {
+            Alert.alert(t('sorry'), t('userAlreadyExist'), [
+              {
+                text: t('ok'),
+                onPress: () => {
+                  setIsLoadingVisible(false);
+                },
+              },
+            ]);
+            return;
+          }
+        }
         var sendResult = await realTimeService.SendInvite(
           User.email.toLocaleLowerCase(),
           userEmailInput.toLocaleLowerCase(),

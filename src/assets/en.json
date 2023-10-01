@@ -33,6 +33,7 @@
     "giveControlAskAlert": "Are you sure to give control to another person?",
     "noteAreaPlaceholder": "Start note together ...",
     "controlReleasedAlert": "Control has been released.",
-    "alreadyInvitedAlert": "This user has a already unanswered invite."
+    "alreadyInvitedAlert": "This user has a already unanswered invite.",
+    "userAlreadyExist": "This user is already in the room."
   }
 }
