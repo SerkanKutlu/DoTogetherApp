@@ -31,6 +31,9 @@ import {NoteService} from '../../Services/NoteService';
 import {ActivityService} from '../../Services/ActivityService';
 import {RoomService} from '../../Services/RoomService';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {useTranslation} from 'react-i18next';
+import * as RNLocalize from 'react-native-localize';
+import '../../assets/i18n';
 function RoomPage({navigation, route}): JSX.Element {
   //#region States
   const [inviteRoomVisible, setInviteRoomVisible] = useState(false);
@@ -55,7 +58,10 @@ function RoomPage({navigation, route}): JSX.Element {
   const User = ActiveUser.GetActiveUser()?.user;
 
   const {width, height} = useWindowDimensions();
-
+  const {t, i18n} = useTranslation();
+  const changeLanguage = (value: any) => {
+    i18n.changeLanguage(value);
+  };
   //#endregion
   //#region Services
   const realTimeService = new RealTimeService();
@@ -76,11 +82,11 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(true);
     await roomService.UpdateRoomLockedBy(Room.Id, newController.UserEmail);
     Alert.alert(
-      'Success',
-      'Control has been released', // Message of the alert
+      t('success'),
+      t('controlReleasedAlert'), // Message of the alert
       [
         {
-          text: 'OK',
+          text: t('ok'),
           onPress: () => {},
         },
       ],
@@ -88,26 +94,22 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(false);
   }
   function CloseRoomClicked() {
-    Alert.alert(
-      'Confirmation',
-      'This room and all notes of it will be deleted. Are you sure ?',
-      [
-        {
-          text: 'YES',
-          onPress: () => {
-            setIsLoadingVisible(true);
-            setIsRoomDeleted(true);
-            roomService.DeleteRoom(Room.Id).then(() => {
-              setIsRoomDeleted(false);
-              navigation.navigate('OnBoard');
-            });
-          },
+    Alert.alert(t('confirmation'), t('closeRoomAskAlert'), [
+      {
+        text: t('yes'),
+        onPress: () => {
+          setIsLoadingVisible(true);
+          setIsRoomDeleted(true);
+          roomService.DeleteRoom(Room.Id).then(() => {
+            setIsRoomDeleted(false);
+            navigation.navigate('OnBoard');
+          });
         },
-        {
-          text: 'NO',
-        },
-      ],
-    );
+      },
+      {
+        text: t('no'),
+      },
+    ]);
   }
   const [visible, setVisible] = React.useState(false);
 
@@ -125,11 +127,11 @@ function RoomPage({navigation, route}): JSX.Element {
     await roomService.DeleteUserFromRoomUser(Room.Id, removedEmail.UserId);
     realTimeService.SomeoneKicked(Room.Id, removedEmail.UserEmail, Room.Title);
     Alert.alert(
-      'Success',
-      'User has been kicked', // Message of the alert
+      t('success'),
+      t('userKickedAlert'), // Message of the alert
       [
         {
-          text: 'OK',
+          text: t('ok'),
           onPress: () => {},
         },
       ],
@@ -137,18 +139,18 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(false);
   }
   useEffect(() => {
+    const preferredLanguage = RNLocalize.getLocales()[0].languageTag;
+    if (preferredLanguage.includes('tr')) {
+      changeLanguage('tr');
+    }
     //Get ALL Users
     if (Room == undefined) {
-      Alert.alert(
-        'Sorry', // Title of the alert
-        'The founder removed you out of the room or room is deleted.', // Message of the alert
-        [
-          {
-            text: 'OK', // Button text
-            onPress: () => {},
-          },
-        ],
-      );
+      Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
+        {
+          text: t('ok'),
+          onPress: () => {},
+        },
+      ]);
       navigation.navigate('OnBoard');
       return;
     }
@@ -156,18 +158,14 @@ function RoomPage({navigation, route}): JSX.Element {
       if (us != undefined) {
         let userExistAtThisRoom = us.some(u => u.UserEmail == User?.email);
         if (!userExistAtThisRoom) {
-          Alert.alert(
-            'Sorry', // Title of the alert
-            'The founder removed you out of the room or room is deleted.', // Message of the alert
-            [
-              {
-                text: 'OK', // Button text
-                onPress: () => {
-                  navigation.navigate('OnBoard');
-                },
+          Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
+            {
+              text: t('ok'),
+              onPress: () => {
+                navigation.navigate('OnBoard');
               },
-            ],
-          );
+            },
+          ]);
         } else {
           setUserExistAtThisRoom(prev => {
             return true;
@@ -203,18 +201,14 @@ function RoomPage({navigation, route}): JSX.Element {
               !isRoomDeleted
             ) {
               setIsKickedFromRoom(true);
-              Alert.alert(
-                'Sorry', // Title of the alert
-                'The founder removed you out of the room or room is deleted.', // Message of the alert
-                [
-                  {
-                    text: 'OK', // Button text
-                    onPress: () => {
-                      navigation.navigate('OnBoard');
-                    },
+              Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
+                {
+                  text: t('ok'),
+                  onPress: () => {
+                    navigation.navigate('OnBoard');
                   },
-                ],
-              );
+                },
+              ]);
             }
             if (jsonNewItem?.UserEmail == Room.LockedBy) {
               // Kitli olan kişi çıktı
@@ -305,18 +299,14 @@ function RoomPage({navigation, route}): JSX.Element {
           if (Room.CreatedUserEmail == User?.email) {
             navigation.navigate('OnBoard');
           } else {
-            Alert.alert(
-              'Sorry',
-              'The founder removed you out of the room or room is deleted.',
-              [
-                {
-                  text: 'OK',
-                  onPress: () => {
-                    navigation.navigate('OnBoard');
-                  },
+            Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
+              {
+                text: t('ok'),
+                onPress: () => {
+                  navigation.navigate('OnBoard');
                 },
-              ],
-            );
+              },
+            ]);
           }
         } else {
           Room.LockedBy = newResult._data.LockedBy;
@@ -410,32 +400,24 @@ function RoomPage({navigation, route}): JSX.Element {
         );
         setIsLoadingVisible(false);
 
-        Alert.alert(
-          'Success',
-          'Invite has been sent', // Message of the alert
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setInviteRoomVisible(false);
-              },
+        Alert.alert(t('success'), t('inviteSentAlert'), [
+          {
+            text: t('ok'),
+            onPress: () => {
+              setInviteRoomVisible(false);
             },
-          ],
-        );
+          },
+        ]);
       } catch {
         setIsLoadingVisible(false);
-        Alert.alert(
-          'Failed',
-          'Try Again', // Message of the alert
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setInviteRoomVisible(false);
-              },
+        Alert.alert(t('sorry'), t('tryAgainAlert'), [
+          {
+            text: t('ok'),
+            onPress: () => {
+              setInviteRoomVisible(false);
             },
-          ],
-        );
+          },
+        ]);
       }
     }
   }
@@ -473,10 +455,10 @@ function RoomPage({navigation, route}): JSX.Element {
                     style={styles.modalCloseBtn}
                   />
                   <TextInput
-                    label="User Email"
+                    label={t('userEmail')}
                     value={userEmailInput}
                     onChangeText={text => setUserEmailInput(text)}
-                    placeholder="Email..."
+                    placeholder={t('userEmail')}
                     style={styles.userEmailInput as any}
                   />
                   <Text
@@ -485,12 +467,12 @@ function RoomPage({navigation, route}): JSX.Element {
                       marginTop: 10,
                       display: isUserEmailErrorMessageDisplay as any,
                     }}>
-                    Invalid Email Address
+                    {t('invalidEmail')}
                   </Text>
                   <Button
                     style={styles.modalButton}
                     onPress={async () => await ModalInviteButtonClicked()}>
-                    Send
+                    {t('send')}
                   </Button>
                 </View>
               </View>
@@ -529,24 +511,24 @@ function RoomPage({navigation, route}): JSX.Element {
                       <List.Item
                         onPressOut={() =>
                           Alert.alert(
-                            'Confirm',
-                            'Are you sure to give control to another person?', // Message of the alert
+                            t('confirmation'),
+                            t('giveControlAskAlert'),
                             [
                               {
-                                text: 'YES',
+                                text: t('yes'),
                                 onPress: async () => {
                                   GiveControlClicked(choosenUserOptions);
                                   setUserOptionsModalVisible(false);
                                 },
                               },
                               {
-                                text: 'NO',
+                                text: t('no'),
                                 onPress: () => {},
                               },
                             ],
                           )
                         }
-                        title="Give Control"
+                        title={t('giveControl')}
                         left={props => (
                           <List.Icon
                             {...props}
@@ -563,11 +545,11 @@ function RoomPage({navigation, route}): JSX.Element {
                       <List.Item
                         onPressOut={() =>
                           Alert.alert(
-                            'Confirm',
-                            'Are you sure to remove this person from the room ?', // Message of the alert
+                            t('confirmation'),
+                            t('removeUserAskAlert'),
                             [
                               {
-                                text: 'YES',
+                                text: t('yes'),
                                 onPress: async () => {
                                   await RemoveFromRoomClicked(
                                     choosenUserOptions,
@@ -576,13 +558,13 @@ function RoomPage({navigation, route}): JSX.Element {
                                 },
                               },
                               {
-                                text: 'NO',
+                                text: t('no'),
                                 onPress: () => {},
                               },
                             ],
                           )
                         }
-                        title="Remove From The Room"
+                        title={t('removeFromTheRoom')}
                         left={props => (
                           <List.Icon
                             {...props}
@@ -610,7 +592,9 @@ function RoomPage({navigation, route}): JSX.Element {
                 <DataTable style={{flex: 1, width: '100%'}}>
                   <DataTable.Header>
                     <DataTable.Title style={{flex: 1}}> </DataTable.Title>
-                    <DataTable.Title style={{flex: 5}}>User</DataTable.Title>
+                    <DataTable.Title style={{flex: 5}}>
+                      {t('user')}
+                    </DataTable.Title>
                   </DataTable.Header>
                   {users
                     ?.sort(compareUsers)
@@ -712,7 +696,7 @@ function RoomPage({navigation, route}): JSX.Element {
                   onPress={() => {
                     InviteButtonClicked();
                   }}
-                  title="Invite"
+                  title={t('invite')}
                   leadingIcon={'account-plus'}
                 />
                 <Divider />
@@ -721,7 +705,7 @@ function RoomPage({navigation, route}): JSX.Element {
                     onPress={() => {
                       CloseRoomClicked();
                     }}
-                    title="Close Room"
+                    title={t('closeRoom')}
                     leadingIcon={'delete'}
                   />
                 ) : (
@@ -736,7 +720,7 @@ function RoomPage({navigation, route}): JSX.Element {
             <TextInputReact
               multiline
               editable={Room.LockedBy == User?.email ? true : false}
-              placeholder="Start Note Together"
+              placeholder={t('noteAreaPlaceholder')}
               value={pageContent}
               onChangeText={val => {
                 UpdatePageContent(val);

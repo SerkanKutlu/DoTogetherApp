@@ -5,11 +5,14 @@ import {RealTimeService} from '../../Services/RealTimeService';
 import {ActiveUser} from '../../Services/AuthService';
 import {View, Text, BackHandler} from 'react-native';
 import useStyles from './InvitesStyle';
+import {useTranslation} from 'react-i18next';
+import * as RNLocalize from 'react-native-localize';
+import '../../assets/i18n';
 function Invites({navigation, route}): JSX.Element {
   const [invites, setInvites] = useState<any[]>(route.params.Invites);
   const [invitesPageNumber, setInvitesPageNumber] = React.useState<number>(0);
   const [isLoadingVisible, setIsLoadingVisible] = useState(false);
-  const itemPerPage = 5;
+  const itemPerPage = 10;
   const fromInvites = invitesPageNumber * itemPerPage;
   const toInvites = Math.min(
     (invitesPageNumber + 1) * itemPerPage,
@@ -19,7 +22,15 @@ function Invites({navigation, route}): JSX.Element {
   const realTimeService = new RealTimeService();
   const User = ActiveUser.GetActiveUser();
   const styles = useStyles();
+  const {t, i18n} = useTranslation();
+  const changeLanguage = (value: any) => {
+    i18n.changeLanguage(value);
+  };
   useEffect(() => {
+    const preferredLanguage = RNLocalize.getLocales()[0].languageTag;
+    if (preferredLanguage.includes('tr')) {
+      changeLanguage('tr');
+    }
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
@@ -110,13 +121,13 @@ function Invites({navigation, route}): JSX.Element {
           onPress={() => GoBackButtonPressed()}
         />
         <View>
-          <Text style={styles.invitesHeader}>Invites</Text>
+          <Text style={styles.invitesHeader as any}>{t('invites')}</Text>
         </View>
       </View>
       <DataTable>
         <DataTable.Header>
-          <DataTable.Title style={{flex: 5}}>Invited By</DataTable.Title>
-          <DataTable.Title style={{flex: 5}}>Room Title</DataTable.Title>
+          <DataTable.Title style={{flex: 5}}>{t('invitedBy')}</DataTable.Title>
+          <DataTable.Title style={{flex: 5}}>{t('roomName')}</DataTable.Title>
           <DataTable.Title style={{flex: 4}}> </DataTable.Title>
         </DataTable.Header>
 

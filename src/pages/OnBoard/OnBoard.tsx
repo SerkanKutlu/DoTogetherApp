@@ -23,6 +23,9 @@ import {Room} from '../../Models/Room';
 import {ActiveUser, AuthService} from '../../Services/AuthService';
 import {RealTimeService} from '../../Services/RealTimeService';
 import {ActivityService} from '../../Services/ActivityService';
+import {useTranslation} from 'react-i18next';
+import * as RNLocalize from 'react-native-localize';
+import '../../assets/i18n';
 function OnBoard({navigation}): JSX.Element {
   //#region  States
   const [createRoomModalVisible, setCreateRoomModalVisible] = useState(false);
@@ -43,9 +46,17 @@ function OnBoard({navigation}): JSX.Element {
   const authService = new AuthService();
   const realTimeService = new RealTimeService();
   const activityService = new ActivityService();
+  const {t, i18n} = useTranslation();
+  const changeLanguage = (value: any) => {
+    i18n.changeLanguage(value);
+  };
   //#endregion
 
   useEffect(() => {
+    const preferredLanguage = RNLocalize.getLocales()[0].languageTag;
+    if (preferredLanguage.includes('tr')) {
+      changeLanguage('tr');
+    }
     navigation.addListener('focus', async () => {
       setIsLoadingVisible(true);
       await SetRooms();
@@ -160,10 +171,10 @@ function OnBoard({navigation}): JSX.Element {
                   style={styles.modalCloseBtn}
                 />
                 <TextInput
-                  label="Room Name"
+                  label={t('roomName')}
                   value={roomNameInput}
                   onChangeText={text => setroomNameInput(text)}
-                  placeholder="Room Name..."
+                  placeholder={t('roomName') + '...'}
                   style={styles.roomNameInput as any}
                 />
                 <Text
@@ -172,14 +183,14 @@ function OnBoard({navigation}): JSX.Element {
                     marginTop: 10,
                     display: isRoomNameErrorMessageDisabled as any,
                   }}>
-                  Invalid Room Name
+                  {t('invalidRoomName')}
                 </Text>
                 <Button
                   icon="plus"
                   mode="elevated"
                   style={styles.modalButton}
                   onPress={async () => await ModalCreateButtonClicked()}>
-                  Create
+                  {t('create')}
                 </Button>
               </View>
             </View>
@@ -193,18 +204,20 @@ function OnBoard({navigation}): JSX.Element {
           onPress={() => {
             navigation.navigate('Invites', {Invites: invites});
           }}>
-          {invites.length > 0 ? `Join (${invites.length})` : 'Join (0)'}
+          {invites.length > 0
+            ? `${t('join')} (${invites.length})`
+            : `${t('join')} (0)`}
         </Button>
         <Button
           icon="plus"
           mode="elevated"
           onPress={() => CreateRoomButtonClicked()}>
-          Create
+          {t('create')}
         </Button>
       </View>
       <View style={styles.roomList}>
         <View style={styles.roomListHeaderContainer}>
-          <Text style={styles.roomListHeader as any}>Room List</Text>
+          <Text style={styles.roomListHeader as any}>{t('roomList')}</Text>
         </View>
         <ScrollView style={styles.roomListScrool}>
           {rooms.map(room => {
