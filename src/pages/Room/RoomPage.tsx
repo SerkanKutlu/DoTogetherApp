@@ -47,6 +47,8 @@ function RoomPage({navigation, route}): JSX.Element {
   const [isRoomDeleted, setIsRoomDeleted] = useState(false);
   const [userExistAtThisRoom, setUserExistAtThisRoom] = useState(false);
   const [isLoadingVisible, setIsLoadingVisible] = useState(false);
+  const [isUserEmailErrorMessageDisplay, setIsUserEmailErrorMessageDisplay] =
+    useState('none');
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -370,6 +372,15 @@ function RoomPage({navigation, route}): JSX.Element {
     setUsers(updatedUsers);
   }, [activeUsers]);
 
+  useEffect(() => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (emailPattern.test(userEmailInput)) {
+      setIsUserEmailErrorMessageDisplay('none');
+    } else {
+      setIsUserEmailErrorMessageDisplay('flex');
+    }
+    if (userEmailInput.length == 0) setIsUserEmailErrorMessageDisplay('none');
+  }, [userEmailInput]);
   function compareUsers(a, b) {
     if (a.IsOnline === b.IsOnline) {
       // If IsOnline is the same, compare by UserEmail
@@ -388,7 +399,8 @@ function RoomPage({navigation, route}): JSX.Element {
     setInviteRoomVisible(true);
   }
   async function ModalInviteButtonClicked() {
-    if (User != undefined) {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (emailPattern.test(userEmailInput) && User != undefined) {
       try {
         setIsLoadingVisible(true);
         await realTimeService.SendInvite(
@@ -467,6 +479,14 @@ function RoomPage({navigation, route}): JSX.Element {
                     placeholder="Email..."
                     style={styles.userEmailInput as any}
                   />
+                  <Text
+                    style={{
+                      color: 'red',
+                      marginTop: 10,
+                      display: isUserEmailErrorMessageDisplay as any,
+                    }}>
+                    Invalid Email Address
+                  </Text>
                   <Button
                     style={styles.modalButton}
                     onPress={async () => await ModalInviteButtonClicked()}>
