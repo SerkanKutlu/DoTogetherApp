@@ -26,12 +26,13 @@ export class AuthService {
     });
   }
 
-  async GoogleLogin() {
+  async GoogleLogin(): Promise<boolean> {
     try {
       const user = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(user.idToken);
       await auth().signInWithCredential(googleCredential);
       ActiveUser.SetActiveUser(user);
+      return true;
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.log('user cancelled google auth sign in flow');
@@ -42,6 +43,7 @@ export class AuthService {
       } else {
         console.log('Unknown Error:' + error);
       }
+      return false;
     }
   }
   async LoginAgain() {

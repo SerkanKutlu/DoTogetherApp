@@ -1,5 +1,3 @@
---Kişiye tıklayıp üzerinde işlem yapma -- odadan atma, yetki verme vs.
---Oda ilgili işlemler için invite butonu yerine settings tuşu konup içine seçenekler konabilir 
-    -- odayı kapat, herkese bildirim gönder, invite
---Oda başlığı koy.
---
+--Şimdi tüm user'ları listeleyince atma durumlarında falan o tüm userları güncellemek lazım.
+aynı şekilde odadan kullanıcı kendi ayrılırsa da silmek lazım bunuun için yine biyerden canlı
+çekmek lazım vs vs. (belki bunu realtime yapmayabilirizde.)

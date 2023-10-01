@@ -37,7 +37,7 @@ export class ActivityService {
     } catch (error) {}
   }
   async DeleteActiveReal(userEmail: string, roomId: string) {
-    firebase
+    await firebase
       .app()
       .database(
         'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
