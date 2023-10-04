@@ -20,6 +20,9 @@ export default function useStyles() {
       bottom: height / 2,
       right: width / 2,
     },
+    loadingIconAtModal: {
+      marginTop: '10@s',
+    },
     centeredView: {
       flex: 1,
       justifyContent: 'center',

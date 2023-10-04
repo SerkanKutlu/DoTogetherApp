@@ -94,6 +94,7 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(false);
   }
   function CloseRoomClicked() {
+    closeMenu();
     Alert.alert(t('confirmation'), t('closeRoomAskAlert'), [
       {
         text: t('yes'),
@@ -387,17 +388,44 @@ function RoomPage({navigation, route}): JSX.Element {
 
   function InviteButtonClicked() {
     setInviteRoomVisible(true);
+    closeMenu();
   }
   async function ModalInviteButtonClicked() {
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (emailPattern.test(userEmailInput) && User != undefined) {
       try {
         setIsLoadingVisible(true);
-        await realTimeService.SendInvite(
+        console.log(users.length);
+        for (let i = 0; i < users.length; i++) {
+          console.log(users[i].UserEmail);
+          if (users[i].UserEmail == userEmailInput.toLocaleLowerCase()) {
+            Alert.alert(t('sorry'), t('userAlreadyExist'), [
+              {
+                text: t('ok'),
+                onPress: () => {
+                  setIsLoadingVisible(false);
+                },
+              },
+            ]);
+            return;
+          }
+        }
+        var sendResult = await realTimeService.SendInvite(
           User.email.toLocaleLowerCase(),
           userEmailInput.toLocaleLowerCase(),
           Room.Id,
         );
+        if (sendResult != undefined && !sendResult) {
+          Alert.alert(t('sorry'), t('alreadyInvitedAlert'), [
+            {
+              text: t('ok'),
+              onPress: () => {
+                setIsLoadingVisible(false);
+              },
+            },
+          ]);
+          return;
+        }
         setIsLoadingVisible(false);
 
         Alert.alert(t('success'), t('inviteSentAlert'), [
@@ -455,6 +483,7 @@ function RoomPage({navigation, route}): JSX.Element {
                     style={styles.modalCloseBtn}
                   />
                   <TextInput
+                    mode="outlined"
                     label={t('userEmail')}
                     value={userEmailInput}
                     onChangeText={text => setUserEmailInput(text)}
@@ -471,9 +500,18 @@ function RoomPage({navigation, route}): JSX.Element {
                   </Text>
                   <Button
                     style={styles.modalButton}
+                    disabled={isLoadingVisible}
                     onPress={async () => await ModalInviteButtonClicked()}>
                     {t('send')}
                   </Button>
+                  <ActivityIndicator
+                    animating={true}
+                    style={[
+                      styles.loadingIconAtModal,
+                      {display: isLoadingVisible ? 'flex' : 'none'},
+                    ]}
+                    size={'small'}
+                  />
                 </View>
               </View>
             </TouchableWithoutFeedback>

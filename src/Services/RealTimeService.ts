@@ -1,6 +1,9 @@
 import {firebase} from '@react-native-firebase/database';
 import {Sockets} from '../Constants/Sockets';
 import uuid from 'react-native-uuid';
+import {Alert} from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+import {Collections} from '../Constants/Collections';
 export class RealTimeService {
   OnInvite(activeUserEmail: string) {
     return firebase
@@ -12,6 +15,14 @@ export class RealTimeService {
   }
 
   async SendInvite(invitedby: string, invited: string, roomId: string) {
+    // //Check if invite exist :
+    const invitesSnapshot = await firestore()
+      .collection(Collections.Invites)
+      .where('RoomId', '==', roomId)
+      .where('InvitedUserEmail', '==', invited)
+      .get();
+    console.log(invitesSnapshot.docs);
+    if (invitesSnapshot.docs.length > 0) return false;
     const inviteId = uuid.v4().toString();
     await firebase
       .app()

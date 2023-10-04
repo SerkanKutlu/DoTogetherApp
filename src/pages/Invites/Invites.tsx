@@ -54,6 +54,7 @@ function Invites({navigation, route}): JSX.Element {
                   Title: room.Title,
                   RoomId: room.Id,
                   InvitedId: User.user.id,
+                  InvitedUserEmail: User.user.email,
                 })
                 .then(async () => {
                   await RefreshInvites();
