@@ -483,6 +483,7 @@ function RoomPage({navigation, route}): JSX.Element {
                     style={styles.modalCloseBtn}
                   />
                   <TextInput
+                    mode="outlined"
                     label={t('userEmail')}
                     value={userEmailInput}
                     onChangeText={text => setUserEmailInput(text)}

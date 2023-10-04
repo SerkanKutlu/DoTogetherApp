@@ -172,6 +172,7 @@ function OnBoard({navigation}): JSX.Element {
                   style={styles.modalCloseBtn}
                 />
                 <TextInput
+                  mode="outlined"
                   label={t('roomName')}
                   value={roomNameInput}
                   onChangeText={text => setroomNameInput(text)}

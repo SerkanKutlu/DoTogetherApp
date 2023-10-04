@@ -69,25 +69,6 @@ function Login({navigation}): JSX.Element {
               }}>
               Continue With Google
             </Button>
-            {Platform.OS === 'ios' && (
-              <Button
-                style={styles.loginElment}
-                icon="apple"
-                mode="elevated"
-                onPress={async () => await authService.AppleLogin()}>
-                Continue With Apple
-              </Button>
-            )}
-
-            <View style={[styles.orContainer, styles.loginElment]}>
-              <Text style={styles.or as any}>or</Text>
-            </View>
-            <Button
-              style={styles.loginElment}
-              mode="elevated"
-              onPress={() => {}}>
-              Create Account
-            </Button>
           </View>
         </SafeAreaView>
       )}
