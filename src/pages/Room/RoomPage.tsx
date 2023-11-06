@@ -59,6 +59,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [isRoomDeleted, setIsRoomDeleted] = useState(false);
   const [userExistAtThisRoom, setUserExistAtThisRoom] = useState(false);
   const [isLoadingVisible, setIsLoadingVisible] = useState(false);
+  const [isLoadingVisibleAtModal, setIsLoadingVisibleAtModal] = useState(false);
   const [isUserEmailErrorMessageDisplay, setIsUserEmailErrorMessageDisplay] =
     useState('none');
   //#endregion
@@ -108,7 +109,7 @@ function RoomPage({navigation, route}): JSX.Element {
       {
         text: t('yes'),
         onPress: () => {
-          setIsLoadingVisible(true);
+          setIsLoadingVisibleAtModal(true);
           setIsRoomDeleted(true);
           roomService.DeleteRoom(Room.Id).then(() => {
             setIsRoomDeleted(false);
@@ -410,7 +411,7 @@ function RoomPage({navigation, route}): JSX.Element {
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (emailPattern.test(userEmailInput) && User != undefined) {
       try {
-        setIsLoadingVisible(true);
+        setIsLoadingVisibleAtModal(true);
         console.log(users.length);
         for (let i = 0; i < users.length; i++) {
           console.log(users[i].UserEmail);
@@ -419,7 +420,7 @@ function RoomPage({navigation, route}): JSX.Element {
               {
                 text: t('ok'),
                 onPress: () => {
-                  setIsLoadingVisible(false);
+                  setIsLoadingVisibleAtModal(false);
                 },
               },
             ]);
@@ -436,13 +437,13 @@ function RoomPage({navigation, route}): JSX.Element {
             {
               text: t('ok'),
               onPress: () => {
-                setIsLoadingVisible(false);
+                setIsLoadingVisibleAtModal(false);
               },
             },
           ]);
           return;
         }
-        setIsLoadingVisible(false);
+        setIsLoadingVisibleAtModal(false);
 
         Alert.alert(t('success'), t('inviteSentAlert'), [
           {
@@ -453,7 +454,7 @@ function RoomPage({navigation, route}): JSX.Element {
           },
         ]);
       } catch {
-        setIsLoadingVisible(false);
+        setIsLoadingVisibleAtModal(false);
         Alert.alert(t('sorry'), t('tryAgainAlert'), [
           {
             text: t('ok'),
@@ -524,7 +525,7 @@ function RoomPage({navigation, route}): JSX.Element {
                     animating={true}
                     style={[
                       styles.loadingIconAtModal,
-                      {display: isLoadingVisible ? 'flex' : 'none'},
+                      {display: isLoadingVisibleAtModal ? 'flex' : 'none'},
                     ]}
                     size={'small'}
                   />
