@@ -65,6 +65,8 @@ export default function useStyles() {
       position: 'absolute',
       right: 0,
     },
-    TextAreaContainer: {},
+    TextAreaContainer: {
+      height: 650,
+    },
   });
 }

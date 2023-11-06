@@ -5,13 +5,13 @@ import {
   Modal,
   useWindowDimensions,
   Text,
-  TouchableOpacity,
-  Pressable,
   Platform,
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
   BackHandler,
+  ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import {
   Button,
@@ -24,6 +24,7 @@ import {
   Divider,
   ActivityIndicator,
 } from 'react-native-paper';
+import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
 import useStyles from './RoomPageStyle';
 import {RealTimeService} from '../../Services/RealTimeService';
 import {ActiveUser} from '../../Services/AuthService';
@@ -34,7 +35,15 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTranslation} from 'react-i18next';
 import * as RNLocalize from 'react-native-localize';
 import '../../assets/i18n';
+
 function RoomPage({navigation, route}): JSX.Element {
+  const handleHead = ({tintColor}) => (
+    <Text style={{color: tintColor}}>H1</Text>
+  );
+  const handleHead2 = ({tintColor}) => (
+    <Text style={{color: tintColor}}>H2</Text>
+  );
+  const richText = React.useRef();
   //#region States
   const [inviteRoomVisible, setInviteRoomVisible] = useState(false);
   const [activeUsersVisible, setActiveUsersVisible] = useState(false);
@@ -282,6 +291,11 @@ function RoomPage({navigation, route}): JSX.Element {
     noteService.OnNoteChangeReal(Room.Id).on('value', newVal => {
       if (Room.LockedBy != User?.email) {
         setPageContent(newVal.toJSON()?.Content);
+        if (richText != undefined) {
+          if (richText.current != undefined) {
+            richText.current.setContentHTML(newVal.toJSON()?.Content);
+          }
+        }
       }
     });
     //#endregion
@@ -383,6 +397,8 @@ function RoomPage({navigation, route}): JSX.Element {
   }
 
   function UpdatePageContent(newVal: any) {
+    console.log(Room.LockedBy);
+    console.log(User?.email);
     if (Room.LockedBy == User?.email) noteService.SaveNoteReal(newVal, Room.Id);
   }
 
@@ -755,16 +771,34 @@ function RoomPage({navigation, route}): JSX.Element {
 
           <View style={styles.TextAreaContainer}>
             <Text style={styles.roomListHeader as any}>{Room.Title}</Text>
-            <TextInputReact
-              multiline
-              editable={Room.LockedBy == User?.email ? true : false}
-              placeholder={t('noteAreaPlaceholder')}
-              value={pageContent}
-              onChangeText={val => {
-                UpdatePageContent(val);
-                setPageContent(val);
+            <RichToolbar
+              editor={richText}
+              actions={[
+                actions.setBold,
+                actions.setItalic,
+                actions.setUnderline,
+                actions.heading1,
+                actions.heading2,
+              ]}
+              iconMap={{
+                [actions.heading1]: handleHead,
+                [actions.heading2]: handleHead2,
               }}
             />
+            <ScrollView style={{marginTop: 50}}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <RichEditor
+                  initialHeight={450}
+                  ref={richText as any}
+                  disabled={Room.LockedBy != User?.email ? true : false}
+                  onChange={descriptionText => {
+                    UpdatePageContent(descriptionText);
+                    setPageContent(descriptionText);
+                  }}
+                />
+              </KeyboardAvoidingView>
+            </ScrollView>
           </View>
         </View>
       </PaperProvider>
