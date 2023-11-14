@@ -24,6 +24,7 @@ import {
   Divider,
   ActivityIndicator,
 } from 'react-native-paper';
+import AwesomeAlert from 'react-native-awesome-alerts';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
 import useStyles from './RoomPageStyle';
 import {RealTimeService} from '../../Services/RealTimeService';
@@ -62,6 +63,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [isLoadingVisibleAtModal, setIsLoadingVisibleAtModal] = useState(false);
   const [isUserEmailErrorMessageDisplay, setIsUserEmailErrorMessageDisplay] =
     useState('none');
+  const [connectionAlertShow, setConnectionAlertShow] = useState(false);
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -154,6 +156,7 @@ function RoomPage({navigation, route}): JSX.Element {
     if (preferredLanguage.includes('tr')) {
       changeLanguage('tr');
     }
+
     //Get ALL Users
     if (Room == undefined) {
       Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
@@ -288,7 +291,8 @@ function RoomPage({navigation, route}): JSX.Element {
       }
     });
     //#endregion
-    //#region SUBSCRIBE TO NOTE CHANNEL
+    //#region SUBSCRIBE TO NOTE CHANNEL AND GET NOTE AT THE ROOM LANDING
+
     noteService.OnNoteChangeReal(Room.Id).on('value', newVal => {
       if (Room.LockedBy != User?.email) {
         setPageContent(newVal.toJSON()?.Content);
@@ -362,6 +366,19 @@ function RoomPage({navigation, route}): JSX.Element {
     //#endregion
   }, []);
 
+  function setInitalData() {
+    noteService.GetNoteByRoomIdReal(Room.Id).then(val => {
+      setPageContent(val.toJSON()?.Content);
+      if (richText != undefined) {
+        if (richText.current != undefined) {
+          if (val.toJSON()?.Content != undefined)
+            richText.current.setContentHTML(val.toJSON()?.Content);
+        }
+      }
+
+      console.log(richText);
+    });
+  }
   useEffect(() => {
     let updatedUsers = [...users];
     for (let j = 0; j < updatedUsers.length; j++) {
@@ -482,6 +499,16 @@ function RoomPage({navigation, route}): JSX.Element {
             animating={isLoadingVisible}
             style={styles.loadingIcon}
             size={'small'}
+          />
+          <AwesomeAlert
+            show={connectionAlertShow}
+            showProgress={false}
+            title={t('connectionLostAlertTitle')}
+            message={t('connectionLostAlertMessage')}
+            closeOnTouchOutside={false}
+            closeOnHardwareBackPress={false}
+            showCancelButton={false}
+            showConfirmButton={false}
           />
           <Modal
             animationType="slide"
@@ -790,6 +817,7 @@ function RoomPage({navigation, route}): JSX.Element {
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <RichEditor
+                  onLoadEnd={setInitalData}
                   initialHeight={450}
                   ref={richText as any}
                   disabled={Room.LockedBy != User?.email ? true : false}

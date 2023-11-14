@@ -34,6 +34,8 @@
     "noteAreaPlaceholder": "Start note together ...",
     "controlReleasedAlert": "Control has been released.",
     "alreadyInvitedAlert": "This user has a already unanswered invite.",
-    "userAlreadyExist": "This user is already in the room."
+    "userAlreadyExist": "This user is already in the room.",
+    "connectionLostAlertTitle": "Internet Connection Lost",
+    "connectionLostAlertMessage": "Sorry! Impossible to use application without live connection."
   }
 }
