@@ -55,10 +55,8 @@ function Login({navigation}): JSX.Element {
         try {
           await signInLock.acquire();
           await authService.LoginAgain();
-          console.log('true1' + Platform.OS);
           navigation.navigate('OnBoard');
         } catch (e) {
-          console.log('true' + Platform.OS + e);
           setShowLogin(true);
         } finally {
           signInLock.release();

@@ -12,6 +12,7 @@ import {
   BackHandler,
   ScrollView,
   KeyboardAvoidingView,
+  AppState,
 } from 'react-native';
 import {
   Button,
@@ -63,7 +64,8 @@ function RoomPage({navigation, route}): JSX.Element {
   const [isLoadingVisibleAtModal, setIsLoadingVisibleAtModal] = useState(false);
   const [isUserEmailErrorMessageDisplay, setIsUserEmailErrorMessageDisplay] =
     useState('none');
-  const [connectionAlertShow, setConnectionAlertShow] = useState(false);
+  const [inactiveCounter, setInactiveCounter] = useState(0);
+  const [appState, setAppState] = useState(AppState.currentState);
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -152,6 +154,27 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(false);
   }
   useEffect(() => {
+    function handleAppStateChange(nextAppState: any) {
+      console.log(nextAppState);
+      if (nextAppState === 'active') {
+        // App has come to the foreground
+        console.log('App is in the foreground');
+      } else {
+        // App is in the background or inactive
+        console.log('App is in the background or inactive');
+        setTimeout(() => {
+          console.log('App is inactive for 10 seconds');
+          // Add your code to run after 10 seconds of inactivity
+        }, 10000);
+      }
+      setAppState(nextAppState);
+    }
+
+    // Subscribe to app state changes
+    const appStateSubscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
     const preferredLanguage = RNLocalize.getLocales()[0].languageTag;
     if (preferredLanguage.includes('tr')) {
       changeLanguage('tr');
@@ -239,12 +262,9 @@ function RoomPage({navigation, route}): JSX.Element {
         });
 
         realTimeService.OnSomeoneKicked(Room.Id).on('child_added', e => {
-          console.log('someonekicked');
-          console.log(e);
           let kickedUserEmail = e.toJSON()?.UserEmail;
           let kickedUserAtRoomId = e.toJSON()?.RoomId;
           if (Room.Id == kickedUserAtRoomId) {
-            console.log('bu odada atım olmuş');
             setUsers(prevUsers => {
               let updatedUsers = prevUsers;
               var newUpdatedUsers = updatedUsers.filter(
@@ -267,8 +287,6 @@ function RoomPage({navigation, route}): JSX.Element {
     );
     //#region SUBSCRIBE TO ACCEPTEDINVITES CHANNEL
     realTimeService.OnInviteAccepttedChanged().on('child_added', async e => {
-      console.log('invite accepted child added');
-      console.log(e.toJSON());
       if (e.toJSON()?.RoomId == Room.Id) {
         var us = await roomService.GetRoomUsers(Room.Id);
         setUsers(prevUsers => {
@@ -362,6 +380,7 @@ function RoomPage({navigation, route}): JSX.Element {
       noteService.OnNoteChangeReal(Room.Id).off('value');
       activityService.DeleteActiveReal(User?.email!, Room.Id);
       backHandler.remove();
+      appStateSubscription.remove();
     };
     //#endregion
   }, []);
@@ -375,8 +394,6 @@ function RoomPage({navigation, route}): JSX.Element {
             richText.current.setContentHTML(val.toJSON()?.Content);
         }
       }
-
-      console.log(richText);
     });
   }
   useEffect(() => {
@@ -415,8 +432,6 @@ function RoomPage({navigation, route}): JSX.Element {
   }
 
   function UpdatePageContent(newVal: any) {
-    console.log(Room.LockedBy);
-    console.log(User?.email);
     if (Room.LockedBy == User?.email) noteService.SaveNoteReal(newVal, Room.Id);
   }
 
@@ -429,9 +444,7 @@ function RoomPage({navigation, route}): JSX.Element {
     if (emailPattern.test(userEmailInput) && User != undefined) {
       try {
         setIsLoadingVisibleAtModal(true);
-        console.log(users.length);
         for (let i = 0; i < users.length; i++) {
-          console.log(users[i].UserEmail);
           if (users[i].UserEmail == userEmailInput.toLocaleLowerCase()) {
             Alert.alert(t('sorry'), t('userAlreadyExist'), [
               {
@@ -500,16 +513,7 @@ function RoomPage({navigation, route}): JSX.Element {
             style={styles.loadingIcon}
             size={'small'}
           />
-          <AwesomeAlert
-            show={connectionAlertShow}
-            showProgress={false}
-            title={t('connectionLostAlertTitle')}
-            message={t('connectionLostAlertMessage')}
-            closeOnTouchOutside={false}
-            closeOnHardwareBackPress={false}
-            showCancelButton={false}
-            showConfirmButton={false}
-          />
+
           <Modal
             animationType="slide"
             transparent={true}
