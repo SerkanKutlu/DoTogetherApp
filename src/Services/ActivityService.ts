@@ -65,6 +65,7 @@ export class ActivityService {
         RoomId: roomId,
         UserEmail: userEmail,
         Id: uuid.v4().toString(),
+        LastSignalDate: Date.now(),
       })
       .then(() => {})
       .catch(e => {
@@ -78,5 +79,21 @@ export class ActivityService {
         'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
       )
       .ref(`${Sockets.Activity}/${roomId}`);
+  }
+
+  async UpdateLastSignalDate(userEmail: string, roomId: string) {
+    await firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.Activity}/${roomId}/${userEmail.replace('.', '')}`)
+      .update({
+        LastSignalDate: Date.now(),
+      })
+      .then(() => {})
+      .catch(e => {
+        console.log('Odaya Katılırken Hata Oluştu. Real. ' + e);
+      });
   }
 }

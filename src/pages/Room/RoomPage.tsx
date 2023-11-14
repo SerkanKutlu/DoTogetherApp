@@ -64,8 +64,6 @@ function RoomPage({navigation, route}): JSX.Element {
   const [isLoadingVisibleAtModal, setIsLoadingVisibleAtModal] = useState(false);
   const [isUserEmailErrorMessageDisplay, setIsUserEmailErrorMessageDisplay] =
     useState('none');
-  const [inactiveCounter, setInactiveCounter] = useState(0);
-  const [appState, setAppState] = useState(AppState.currentState);
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -154,6 +152,36 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(false);
   }
   useEffect(() => {
+    const updateActivitySignalInterval = setInterval(() => {
+      if (User != undefined) {
+        console.log('updateing');
+        activityService.UpdateLastSignalDate(User.email, Room.Id);
+      }
+    }, 20000);
+    const checkActivitySignalInterval = setInterval(() => {
+      if (User != undefined) {
+        console.log('controlling');
+        activityService.ReadActivesOnceReal(Room.Id).then(actives => {
+          actives.forEach(eachActive => {
+            const currentUnixTimestamp = Date.now();
+            const numericLastSignalDate = parseInt(
+              eachActive?.toJSON()?.LastSignalDate,
+              10,
+            );
+            if (currentUnixTimestamp - numericLastSignalDate > 21000) {
+              console.log('user not aktif');
+              activityService.DeleteActiveReal(
+                eachActive?.toJSON()?.UserEmail,
+                Room.Id,
+              );
+            } else {
+              console.log('user aktif');
+            }
+          });
+        });
+      }
+    }, 25000);
+
     function handleAppStateChange(nextAppState: any) {
       console.log(nextAppState);
       if (nextAppState === 'active') {
@@ -167,7 +195,6 @@ function RoomPage({navigation, route}): JSX.Element {
           // Add your code to run after 10 seconds of inactivity
         }, 10000);
       }
-      setAppState(nextAppState);
     }
 
     // Subscribe to app state changes
@@ -381,6 +408,8 @@ function RoomPage({navigation, route}): JSX.Element {
       activityService.DeleteActiveReal(User?.email!, Room.Id);
       backHandler.remove();
       appStateSubscription.remove();
+      clearInterval(updateActivitySignalInterval);
+      clearInterval(checkActivitySignalInterval);
     };
     //#endregion
   }, []);
