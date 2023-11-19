@@ -859,7 +859,6 @@ function RoomPage({navigation, route}): JSX.Element {
                 [actions.heading2]: handleHead2,
               }}
             />
-            //btn koy
             <ScrollView style={{marginTop: 50}}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
