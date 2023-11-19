@@ -36,6 +36,7 @@
     "alreadyInvitedAlert": "Bu kullanıcının henüz cevaplamadığı daveti bulunmaktadır.",
     "userAlreadyExist": "Bu kullanıcı zaten odaya kayıtlı.",
     "connectionLostAlertTitle": "Bağlantı Kayboldu",
-    "connectionLostAlertMessage": "Üzgünüz! Aktif bir internet bağlantısı olmadan uygulamayı kullanmanız mümkün değil."
+    "connectionLostAlertMessage": "Üzgünüz! Aktif bir internet bağlantısı olmadan uygulamayı kullanmanız mümkün değil.",
+    "save": "Kaydet"
   }
 }

@@ -36,6 +36,7 @@
     "alreadyInvitedAlert": "This user has a already unanswered invite.",
     "userAlreadyExist": "This user is already in the room.",
     "connectionLostAlertTitle": "Internet Connection Lost",
-    "connectionLostAlertMessage": "Sorry! Impossible to use application without live connection."
+    "connectionLostAlertMessage": "Sorry! Impossible to use application without live connection.",
+    "save": "Save"
   }
 }

@@ -61,6 +61,15 @@ export default function useStyles() {
     modalButton: {
       marginTop: '20@s',
     },
+    saveBtnArea: {
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+    },
+    saveButton: {
+      marginTop: '5@s',
+      width: '30%',
+    },
     modalCloseBtn: {
       position: 'absolute',
       right: 0,

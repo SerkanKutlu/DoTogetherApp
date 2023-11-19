@@ -107,6 +107,9 @@ function RoomPage({navigation, route}): JSX.Element {
     );
     setIsLoadingVisible(false);
   }
+  async function noteSaveBtnClicked() {
+    await UpdatePageContent();
+  }
   function CloseRoomClicked() {
     closeMenu();
     Alert.alert(t('confirmation'), t('closeRoomAskAlert'), [
@@ -473,8 +476,9 @@ function RoomPage({navigation, route}): JSX.Element {
     }
   }
 
-  function UpdatePageContent(newVal: any) {
-    if (Room.LockedBy == User?.email) noteService.SaveNoteReal(newVal, Room.Id);
+  async function UpdatePageContent() {
+    if (Room.LockedBy == User?.email)
+      await noteService.SaveNoteReal(pageContent, Room.Id);
   }
 
   function InviteButtonClicked() {
@@ -859,7 +863,18 @@ function RoomPage({navigation, route}): JSX.Element {
                 [actions.heading2]: handleHead2,
               }}
             />
-            <ScrollView style={{marginTop: 50}}>
+            <View style={styles.saveBtnArea}>
+              <Button
+                icon="content-save"
+                mode="elevated"
+                style={styles.saveButton}
+                disabled={isLoadingVisible}
+                onPress={async () => await noteSaveBtnClicked()}>
+                {t('save')}
+              </Button>
+            </View>
+
+            <ScrollView style={{marginTop: 25}}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <RichEditor
@@ -868,7 +883,6 @@ function RoomPage({navigation, route}): JSX.Element {
                   ref={richText as any}
                   disabled={Room.LockedBy != User?.email ? true : false}
                   onChange={descriptionText => {
-                    UpdatePageContent(descriptionText);
                     setPageContent(descriptionText);
                   }}
                 />
