@@ -154,12 +154,10 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(false);
   }
   useEffect(() => {
-    console.log('loaddiding');
     const updateActivitySignalInterval = setInterval(() => {
       activityService.MakeActiveReal(User.email, Room.Id);
     }, 13000);
     const checkActivitySignalInterval = setInterval(() => {
-      console.log('set interval başı : ' + Platform.OS);
       activityService.ReadActivesOnceReal(Room.Id).then(actives => {
         actives.forEach(eachActive => {
           const currentUnixTimestamp = Date.now();
@@ -174,27 +172,17 @@ function RoomPage({navigation, route}): JSX.Element {
                 eachActive?.toJSON()?.UserEmail,
               )
               .then(data => {
-                console.log('silinecek data tekrar okundu:');
-                console.log(
-                  'APP STATE BAKALIM NEYMŞ  ' + AppState.currentState,
-                );
                 const currentUnixTimestampAgain = Date.now();
                 const numericLastSignalDateAgain = parseInt(
                   data?.toJSON()?.LastSignalDate,
                   10,
                 );
-                console.log(numericLastSignalDateAgain);
-                console.log('fark');
-                console.log(currentUnixTimestampAgain);
+
                 if (
                   currentUnixTimestampAgain - numericLastSignalDateAgain >
                   21000
                 ) {
-                  console.log(
-                    'silme kararı verildi ve siliniyor   ' + Platform.OS,
-                  );
                   if (AppState.currentState == 'active') {
-                    console.log('son kontroldende geçti');
                     activityService
                       .AddDeleteReason(eachActive?.toJSON()?.UserEmail, Room.Id)
                       .then(() => {
@@ -276,21 +264,19 @@ function RoomPage({navigation, route}): JSX.Element {
 
         activityService.OnActivityChangeReal(Room.Id).on('child_removed', e => {
           var jsonNewItem = e.toJSON();
-          console.log(jsonNewItem);
+
           setActiveUsers(prevActiveUsers => {
             // Use the previous state to ensure you have the latest data
             var result = prevActiveUsers.filter(
               au => au.UserEmail != jsonNewItem?.UserEmail,
             );
-            console.log('silindikten sonraki :' + Platform.OS);
-            console.log(result);
+
             if (
               !isKickedFromRoom &&
               jsonNewItem?.UserEmail == User.email &&
               !isRoomDeleted
             ) {
               setIsKickedFromRoom(true);
-              console.log('burdan o kanıya varıldı3' + Platform.OS);
 
               Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
                 {
@@ -873,6 +859,7 @@ function RoomPage({navigation, route}): JSX.Element {
                 [actions.heading2]: handleHead2,
               }}
             />
+            //btn koy
             <ScrollView style={{marginTop: 50}}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
