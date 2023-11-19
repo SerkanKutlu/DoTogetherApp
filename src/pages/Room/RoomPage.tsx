@@ -12,6 +12,8 @@ import {
   BackHandler,
   ScrollView,
   KeyboardAvoidingView,
+  AppState,
+  PlatformColor,
 } from 'react-native';
 import {
   Button,
@@ -24,6 +26,7 @@ import {
   Divider,
   ActivityIndicator,
 } from 'react-native-paper';
+import AwesomeAlert from 'react-native-awesome-alerts';
 import {actions, RichEditor, RichToolbar} from 'react-native-pell-rich-editor';
 import useStyles from './RoomPageStyle';
 import {RealTimeService} from '../../Services/RealTimeService';
@@ -62,6 +65,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [isLoadingVisibleAtModal, setIsLoadingVisibleAtModal] = useState(false);
   const [isUserEmailErrorMessageDisplay, setIsUserEmailErrorMessageDisplay] =
     useState('none');
+  const [appState, setAppState] = useState('active');
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -150,10 +154,79 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(false);
   }
   useEffect(() => {
+    console.log('loaddiding');
+    const updateActivitySignalInterval = setInterval(() => {
+      activityService.MakeActiveReal(User.email, Room.Id);
+    }, 13000);
+    const checkActivitySignalInterval = setInterval(() => {
+      console.log('set interval başı : ' + Platform.OS);
+      activityService.ReadActivesOnceReal(Room.Id).then(actives => {
+        actives.forEach(eachActive => {
+          const currentUnixTimestamp = Date.now();
+          const numericLastSignalDate = parseInt(
+            eachActive?.toJSON()?.LastSignalDate,
+            10,
+          );
+          if (currentUnixTimestamp - numericLastSignalDate > 21000) {
+            activityService
+              .ReadActivesOnceRealByEmail(
+                Room.Id,
+                eachActive?.toJSON()?.UserEmail,
+              )
+              .then(data => {
+                console.log('silinecek data tekrar okundu:');
+                console.log(
+                  'APP STATE BAKALIM NEYMŞ  ' + AppState.currentState,
+                );
+                const currentUnixTimestampAgain = Date.now();
+                const numericLastSignalDateAgain = parseInt(
+                  data?.toJSON()?.LastSignalDate,
+                  10,
+                );
+                console.log(numericLastSignalDateAgain);
+                console.log('fark');
+                console.log(currentUnixTimestampAgain);
+                if (
+                  currentUnixTimestampAgain - numericLastSignalDateAgain >
+                  21000
+                ) {
+                  console.log(
+                    'silme kararı verildi ve siliniyor   ' + Platform.OS,
+                  );
+                  if (AppState.currentState == 'active') {
+                    console.log('son kontroldende geçti');
+                    activityService
+                      .AddDeleteReason(eachActive?.toJSON()?.UserEmail, Room.Id)
+                      .then(() => {
+                        activityService.DeleteActiveReal(
+                          eachActive?.toJSON()?.UserEmail,
+                          Room.Id,
+                        );
+                      });
+                  }
+                }
+              });
+          }
+        });
+      });
+    }, 15000);
+
+    function handleAppStateChange(nextAppState: any) {
+      if (nextAppState == 'active') {
+        activityService.MakeActiveReal(User.email, Room.Id);
+      }
+    }
+
+    // Subscribe to app state changes
+    const appStateSubscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
     const preferredLanguage = RNLocalize.getLocales()[0].languageTag;
     if (preferredLanguage.includes('tr')) {
       changeLanguage('tr');
     }
+
     //Get ALL Users
     if (Room == undefined) {
       Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
@@ -203,15 +276,22 @@ function RoomPage({navigation, route}): JSX.Element {
 
         activityService.OnActivityChangeReal(Room.Id).on('child_removed', e => {
           var jsonNewItem = e.toJSON();
+          console.log(jsonNewItem);
           setActiveUsers(prevActiveUsers => {
             // Use the previous state to ensure you have the latest data
-            var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
+            var result = prevActiveUsers.filter(
+              au => au.UserEmail != jsonNewItem?.UserEmail,
+            );
+            console.log('silindikten sonraki :' + Platform.OS);
+            console.log(result);
             if (
               !isKickedFromRoom &&
               jsonNewItem?.UserEmail == User.email &&
               !isRoomDeleted
             ) {
               setIsKickedFromRoom(true);
+              console.log('burdan o kanıya varıldı3' + Platform.OS);
+
               Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
                 {
                   text: t('ok'),
@@ -236,12 +316,9 @@ function RoomPage({navigation, route}): JSX.Element {
         });
 
         realTimeService.OnSomeoneKicked(Room.Id).on('child_added', e => {
-          console.log('someonekicked');
-          console.log(e);
           let kickedUserEmail = e.toJSON()?.UserEmail;
           let kickedUserAtRoomId = e.toJSON()?.RoomId;
           if (Room.Id == kickedUserAtRoomId) {
-            console.log('bu odada atım olmuş');
             setUsers(prevUsers => {
               let updatedUsers = prevUsers;
               var newUpdatedUsers = updatedUsers.filter(
@@ -264,8 +341,6 @@ function RoomPage({navigation, route}): JSX.Element {
     );
     //#region SUBSCRIBE TO ACCEPTEDINVITES CHANNEL
     realTimeService.OnInviteAccepttedChanged().on('child_added', async e => {
-      console.log('invite accepted child added');
-      console.log(e.toJSON());
       if (e.toJSON()?.RoomId == Room.Id) {
         var us = await roomService.GetRoomUsers(Room.Id);
         setUsers(prevUsers => {
@@ -288,7 +363,8 @@ function RoomPage({navigation, route}): JSX.Element {
       }
     });
     //#endregion
-    //#region SUBSCRIBE TO NOTE CHANNEL
+    //#region SUBSCRIBE TO NOTE CHANNEL AND GET NOTE AT THE ROOM LANDING
+
     noteService.OnNoteChangeReal(Room.Id).on('value', newVal => {
       if (Room.LockedBy != User?.email) {
         setPageContent(newVal.toJSON()?.Content);
@@ -358,10 +434,24 @@ function RoomPage({navigation, route}): JSX.Element {
       noteService.OnNoteChangeReal(Room.Id).off('value');
       activityService.DeleteActiveReal(User?.email!, Room.Id);
       backHandler.remove();
+      appStateSubscription.remove();
+      clearInterval(updateActivitySignalInterval);
+      clearInterval(checkActivitySignalInterval);
     };
     //#endregion
   }, []);
 
+  function setInitalData() {
+    noteService.GetNoteByRoomIdReal(Room.Id).then(val => {
+      setPageContent(val.toJSON()?.Content);
+      if (richText != undefined) {
+        if (richText.current != undefined) {
+          if (val.toJSON()?.Content != undefined)
+            richText.current.setContentHTML(val.toJSON()?.Content);
+        }
+      }
+    });
+  }
   useEffect(() => {
     let updatedUsers = [...users];
     for (let j = 0; j < updatedUsers.length; j++) {
@@ -398,8 +488,6 @@ function RoomPage({navigation, route}): JSX.Element {
   }
 
   function UpdatePageContent(newVal: any) {
-    console.log(Room.LockedBy);
-    console.log(User?.email);
     if (Room.LockedBy == User?.email) noteService.SaveNoteReal(newVal, Room.Id);
   }
 
@@ -412,9 +500,7 @@ function RoomPage({navigation, route}): JSX.Element {
     if (emailPattern.test(userEmailInput) && User != undefined) {
       try {
         setIsLoadingVisibleAtModal(true);
-        console.log(users.length);
         for (let i = 0; i < users.length; i++) {
-          console.log(users[i].UserEmail);
           if (users[i].UserEmail == userEmailInput.toLocaleLowerCase()) {
             Alert.alert(t('sorry'), t('userAlreadyExist'), [
               {
@@ -483,6 +569,7 @@ function RoomPage({navigation, route}): JSX.Element {
             style={styles.loadingIcon}
             size={'small'}
           />
+
           <Modal
             animationType="slide"
             transparent={true}
@@ -790,6 +877,7 @@ function RoomPage({navigation, route}): JSX.Element {
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <RichEditor
+                  onLoadEnd={setInitalData}
                   initialHeight={450}
                   ref={richText as any}
                   disabled={Room.LockedBy != User?.email ? true : false}

@@ -7,6 +7,7 @@ import {UserRoom} from '../Models/UserRoom';
 import {ActiveUser} from './AuthService';
 import {create} from 'react-test-renderer';
 import {Sockets} from '../Constants/Sockets';
+import {Alert} from 'react-native';
 export class NoteService {
   async SaveNote(noteContent: string, roomId: string) {
     await firestore()
@@ -25,12 +26,14 @@ export class NoteService {
 
   async GetNoteByRoomId(roomId: string): Promise<string | void> {
     try {
+      console.log(roomId);
       const noteSnapShot = await firestore()
         .collection(Collections.Notes)
         .doc(roomId)
         .get();
+      console.log(noteSnapShot.data());
       if (noteSnapShot.data() != undefined) {
-        return noteSnapShot.data()?.Text;
+        return noteSnapShot.data()?.Content;
       }
     } catch (e) {}
   }
@@ -63,11 +66,15 @@ export class NoteService {
   }
 
   OnNoteChangeReal(roomId: string) {
-    return firebase
-      .app()
-      .database(
-        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
-      )
-      .ref(`${Sockets.Notes}/${roomId}`);
+    try {
+      return firebase
+        .app()
+        .database(
+          'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+        )
+        .ref(`${Sockets.Notes}/${roomId}`);
+    } catch (error) {
+      Alert.alert('Con Eerror', 'error laaa');
+    }
   }
 }

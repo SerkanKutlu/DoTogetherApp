@@ -68,5 +68,13 @@ export default function useStyles() {
     TextAreaContainer: {
       height: 650,
     },
+    AwesomealertTitle: {},
+    AwesomealertCon: {
+      margin: 0,
+      padding: 0,
+      textAlign: 'left',
+      justifyContent: 'flex-start',
+      alignContent: 'flex-start',
+    },
   });
 }
