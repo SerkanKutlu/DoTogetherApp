@@ -13,6 +13,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   AppState,
+  PlatformColor,
 } from 'react-native';
 import {
   Button,
@@ -64,6 +65,7 @@ function RoomPage({navigation, route}): JSX.Element {
   const [isLoadingVisibleAtModal, setIsLoadingVisibleAtModal] = useState(false);
   const [isUserEmailErrorMessageDisplay, setIsUserEmailErrorMessageDisplay] =
     useState('none');
+  const [appState, setAppState] = useState('active');
   //#endregion
   //#region Constants
   const styles = useStyles();
@@ -152,48 +154,66 @@ function RoomPage({navigation, route}): JSX.Element {
     setIsLoadingVisible(false);
   }
   useEffect(() => {
+    console.log('loaddiding');
     const updateActivitySignalInterval = setInterval(() => {
-      if (User != undefined) {
-        console.log('updateing');
-        activityService.UpdateLastSignalDate(User.email, Room.Id);
-      }
-    }, 20000);
+      activityService.MakeActiveReal(User.email, Room.Id);
+    }, 13000);
     const checkActivitySignalInterval = setInterval(() => {
-      if (User != undefined) {
-        console.log('controlling');
-        activityService.ReadActivesOnceReal(Room.Id).then(actives => {
-          actives.forEach(eachActive => {
-            const currentUnixTimestamp = Date.now();
-            const numericLastSignalDate = parseInt(
-              eachActive?.toJSON()?.LastSignalDate,
-              10,
-            );
-            if (currentUnixTimestamp - numericLastSignalDate > 21000) {
-              console.log('user not aktif');
-              activityService.DeleteActiveReal(
-                eachActive?.toJSON()?.UserEmail,
+      console.log('set interval başı : ' + Platform.OS);
+      activityService.ReadActivesOnceReal(Room.Id).then(actives => {
+        actives.forEach(eachActive => {
+          const currentUnixTimestamp = Date.now();
+          const numericLastSignalDate = parseInt(
+            eachActive?.toJSON()?.LastSignalDate,
+            10,
+          );
+          if (currentUnixTimestamp - numericLastSignalDate > 21000) {
+            activityService
+              .ReadActivesOnceRealByEmail(
                 Room.Id,
-              );
-            } else {
-              console.log('user aktif');
-            }
-          });
+                eachActive?.toJSON()?.UserEmail,
+              )
+              .then(data => {
+                console.log('silinecek data tekrar okundu:');
+                console.log(
+                  'APP STATE BAKALIM NEYMŞ  ' + AppState.currentState,
+                );
+                const currentUnixTimestampAgain = Date.now();
+                const numericLastSignalDateAgain = parseInt(
+                  data?.toJSON()?.LastSignalDate,
+                  10,
+                );
+                console.log(numericLastSignalDateAgain);
+                console.log('fark');
+                console.log(currentUnixTimestampAgain);
+                if (
+                  currentUnixTimestampAgain - numericLastSignalDateAgain >
+                  21000
+                ) {
+                  console.log(
+                    'silme kararı verildi ve siliniyor   ' + Platform.OS,
+                  );
+                  if (AppState.currentState == 'active') {
+                    console.log('son kontroldende geçti');
+                    activityService
+                      .AddDeleteReason(eachActive?.toJSON()?.UserEmail, Room.Id)
+                      .then(() => {
+                        activityService.DeleteActiveReal(
+                          eachActive?.toJSON()?.UserEmail,
+                          Room.Id,
+                        );
+                      });
+                  }
+                }
+              });
+          }
         });
-      }
-    }, 25000);
+      });
+    }, 15000);
 
     function handleAppStateChange(nextAppState: any) {
-      console.log(nextAppState);
-      if (nextAppState === 'active') {
-        // App has come to the foreground
-        console.log('App is in the foreground');
-      } else {
-        // App is in the background or inactive
-        console.log('App is in the background or inactive');
-        setTimeout(() => {
-          console.log('App is inactive for 10 seconds');
-          // Add your code to run after 10 seconds of inactivity
-        }, 10000);
+      if (nextAppState == 'active') {
+        activityService.MakeActiveReal(User.email, Room.Id);
       }
     }
 
@@ -256,15 +276,22 @@ function RoomPage({navigation, route}): JSX.Element {
 
         activityService.OnActivityChangeReal(Room.Id).on('child_removed', e => {
           var jsonNewItem = e.toJSON();
+          console.log(jsonNewItem);
           setActiveUsers(prevActiveUsers => {
             // Use the previous state to ensure you have the latest data
-            var result = prevActiveUsers.filter(au => au.Id != jsonNewItem?.Id);
+            var result = prevActiveUsers.filter(
+              au => au.UserEmail != jsonNewItem?.UserEmail,
+            );
+            console.log('silindikten sonraki :' + Platform.OS);
+            console.log(result);
             if (
               !isKickedFromRoom &&
               jsonNewItem?.UserEmail == User.email &&
               !isRoomDeleted
             ) {
               setIsKickedFromRoom(true);
+              console.log('burdan o kanıya varıldı3' + Platform.OS);
+
               Alert.alert(t('sorry'), t('kickedFroomRoomAlert'), [
                 {
                   text: t('ok'),

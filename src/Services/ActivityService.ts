@@ -3,6 +3,7 @@ import {Collections} from '../Constants/Collections';
 import uuid from 'react-native-uuid';
 import {firebase} from '@react-native-firebase/auth';
 import {Sockets} from '../Constants/Sockets';
+import {Platform} from 'react-native';
 export class ActivityService {
   async MakeActive(userEmail: string, roomId: string) {
     await firestore()
@@ -54,6 +55,15 @@ export class ActivityService {
       .ref(`${Sockets.Activity}/${roomId}`)
       .once('value');
   }
+  async ReadActivesOnceRealByEmail(roomId: string, userEmail: string) {
+    return await firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.Activity}/${roomId}//${userEmail.replace('.', '')}`)
+      .once('value');
+  }
   async MakeActiveReal(userEmail: string, roomId: string) {
     await firebase
       .app()
@@ -90,6 +100,22 @@ export class ActivityService {
       .ref(`${Sockets.Activity}/${roomId}/${userEmail.replace('.', '')}`)
       .update({
         LastSignalDate: Date.now(),
+      })
+      .then(() => {})
+      .catch(e => {
+        console.log('Odaya Katılırken Hata Oluştu. Real. ' + e);
+      });
+  }
+  async AddDeleteReason(userEmail: string, roomId: string) {
+    await firebase
+      .app()
+      .database(
+        'https://react-native-8802d-default-rtdb.europe-west1.firebasedatabase.app/',
+      )
+      .ref(`${Sockets.Activity}/${roomId}/${userEmail.replace('.', '')}`)
+      .update({
+        LastSignalDate: Date.now(),
+        DeleteReason: 'inactive user',
       })
       .then(() => {})
       .catch(e => {
