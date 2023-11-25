@@ -1,6 +1,6 @@
 {
   "translation": {
-    "join": "Katıl",
+    "join": "Katıll",
     "create": "Oluştur",
     "roomList": "Oda Listesi",
     "invites": "Davetler",
@@ -9,7 +9,7 @@
     "invalidRoomName": "Oda ismi geçersiz.",
     "invalidEmail": "Email geçersiz.",
     "user": "Kullanıcı",
-    "giveControl": "Kontrolü ver",
+    "giveControl": "Kontrolü ver ",
     "removeFromTheRoom": "Odadan at",
     "invite": "Davet Et",
     "closeRoom": "Odayı Kapat",
