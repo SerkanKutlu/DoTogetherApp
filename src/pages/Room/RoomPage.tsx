@@ -880,6 +880,7 @@ function RoomPage({navigation, route}): JSX.Element {
                 <RichEditor
                   onLoadEnd={setInitalData}
                   initialHeight={450}
+                  placeholder={t('richPlaceholder')}
                   ref={richText as any}
                   disabled={Room.LockedBy != User?.email ? true : false}
                   onChange={descriptionText => {

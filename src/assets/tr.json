@@ -1,6 +1,6 @@
 {
   "translation": {
-    "join": "Katıll",
+    "join": "Katıl",
     "create": "Oluştur",
     "roomList": "Oda Listesi",
     "invites": "Davetler",
@@ -37,6 +37,7 @@
     "userAlreadyExist": "Bu kullanıcı zaten odaya kayıtlı.",
     "connectionLostAlertTitle": "Bağlantı Kayboldu",
     "connectionLostAlertMessage": "Üzgünüz! Aktif bir internet bağlantısı olmadan uygulamayı kullanmanız mümkün değil.",
-    "save": "Kaydet"
+    "save": "Kaydet",
+    "richPlaceholder": "Not almaya başlayın..."
   }
 }
